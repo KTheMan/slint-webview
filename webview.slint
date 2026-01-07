@@ -1,0 +1,182 @@
+// Headless Chrome WebView Component
+// Renders web content to an offscreen buffer and displays it as a Slint Image
+// This provides seamless integration without separate windows
+
+export global WebviewLogic {
+    // Callback when the webview area is resized - notifies Rust code to resize rendering
+    callback on-resize(/* width */ length, /* height */ length);
+    
+    // Callback for pointer events - forwards to headless browser for interaction
+    callback on-pointer-event(/* event */ PointerEvent, /* x */ length, /* y */ length);
+
+    // Callback for scroll wheel deltas
+    callback on-scroll(/* delta_x */ length, /* delta_y */ length, /* x */ length, /* y */ length);
+
+    // Callback for keyboard events - forwards key presses/releases to headless browser
+    callback on-key-event(/* event */ KeyEvent) -> EventResult;
+
+    // Callback when layout geometry changes (top-left + size in logical px)
+    callback on-geometry-changed(
+        /* x */ length,
+        /* y */ length,
+        /* width */ length,
+        /* height */ length,
+    );
+    
+    // The rendered web content as an image
+    in-out property <image> web_content;
+    
+    // Webview state
+    in-out property <bool> webview_available: false;
+    in-out property <string> error_message: "";
+
+    // Indicates the native HWND-backed host is active (skip software rendering)
+    in-out property <bool> native_host_active: false;
+
+    // Geometry of the webview area in logical pixels, relative to the Slint window
+    in-out property <length> viewport_left: 0px;
+    in-out property <length> viewport_top: 0px;
+    in-out property <length> viewport_width: 0px;
+    in-out property <length> viewport_height: 0px;
+}
+
+export component Webview {
+    in property <length> external_left_offset: 0px;
+    in property <length> external_top_offset: 0px;
+    focus_scope := FocusScope {
+        key-pressed(event) => {
+            return WebviewLogic.on-key-event(event);
+        }
+
+        key-released(event) => {
+            return WebviewLogic.on-key-event(event);
+        }
+
+    root_area := TouchArea {
+        // Display the rendered web content
+        if WebviewLogic.native_host_active : Rectangle {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+        }
+
+        if !WebviewLogic.native_host_active && WebviewLogic.webview_available && WebviewLogic.web_content.width > 0 : Image {
+            source: WebviewLogic.web_content;
+            width: 100%;
+            height: 100%;
+            image-fit: fill;
+        }
+        
+        // Error or loading state overlay (only when software renderer is active)
+        if !WebviewLogic.native_host_active && !WebviewLogic.webview_available : Rectangle {
+            background: #263238;  // Dark background to match camera view
+            
+            VerticalLayout {
+                alignment: center;
+                spacing: 12px;
+                
+                Text {
+                    text: WebviewLogic.error_message != "" ? "WebView Error" : "Initializing Camera View...";
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: white;
+                    horizontal-alignment: center;
+                }
+                
+                if WebviewLogic.error_message != "" : Text {
+                    text: WebviewLogic.error_message;
+                    font-size: 12px;
+                    color: #90caf9;
+                    horizontal-alignment: center;
+                    wrap: word-wrap;
+                }
+            }
+        }
+            
+            // Forward pointer events to the headless browser
+            pointer-event(event) => {
+                focus_scope.focus();
+                WebviewLogic.on-pointer-event(event, self.mouse-x, self.mouse-y);
+            }
+
+            // Forward scroll wheel events to the headless browser
+            scroll-event(event) => {
+                focus_scope.focus();
+                WebviewLogic.on-scroll(event.delta_x, event.delta_y, self.mouse-x, self.mouse-y);
+                return EventResult.accept;
+            }
+
+
+            // Notify Rust code when size changes so it can resize the rendering
+            changed width => {
+                WebviewLogic.on-resize(self.width, self.height);
+                WebviewLogic.viewport_width = self.width;
+                WebviewLogic.viewport_left = root.external_left_offset + self.x;
+                WebviewLogic.viewport_top = root.external_top_offset + self.y;
+                WebviewLogic.on-geometry-changed(
+                    root.external_left_offset + self.x,
+                    root.external_top_offset + self.y,
+                    self.width,
+                    self.height,
+                );
+            }
+
+            changed height => {
+                WebviewLogic.on-resize(self.width, self.height);
+                WebviewLogic.viewport_height = self.height;
+                WebviewLogic.viewport_left = root.external_left_offset + self.x;
+                WebviewLogic.viewport_top = root.external_top_offset + self.y;
+                WebviewLogic.on-geometry-changed(
+                    root.external_left_offset + self.x,
+                    root.external_top_offset + self.y,
+                    self.width,
+                    self.height,
+                );
+            }
+
+            changed x => {
+                WebviewLogic.viewport_left = root.external_left_offset + self.x;
+                WebviewLogic.viewport_top = root.external_top_offset + self.y;
+                WebviewLogic.on-geometry-changed(
+                    root.external_left_offset + self.x,
+                    root.external_top_offset + self.y,
+                    self.width,
+                    self.height,
+                );
+            }
+
+            changed y => {
+                WebviewLogic.viewport_left = root.external_left_offset + self.x;
+                WebviewLogic.viewport_top = root.external_top_offset + self.y;
+                WebviewLogic.on-geometry-changed(
+                    root.external_left_offset + self.x,
+                    root.external_top_offset + self.y,
+                    self.width,
+                    self.height,
+                );
+            }
+        }
+    }
+
+    changed external_left_offset => {
+        WebviewLogic.viewport_left = root.external_left_offset + root_area.x;
+        WebviewLogic.viewport_top = root.external_top_offset + root_area.y;
+        WebviewLogic.on-geometry-changed(
+            root.external_left_offset + root_area.x,
+            root.external_top_offset + root_area.y,
+            root_area.width,
+            root_area.height,
+        );
+    }
+
+    changed external_top_offset => {
+        WebviewLogic.viewport_left = root.external_left_offset + root_area.x;
+        WebviewLogic.viewport_top = root.external_top_offset + root_area.y;
+        WebviewLogic.on-geometry-changed(
+            root.external_left_offset + root_area.x,
+            root.external_top_offset + root_area.y,
+            root_area.width,
+            root_area.height,
+        );
+    }
+}
