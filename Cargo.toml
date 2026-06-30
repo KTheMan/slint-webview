@@ -1,0 +1,54 @@
+[package]
+name = "slint-webview"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.92"
+description = "Native webview controller for Slint applications."
+license = "LGPL-3.0-only"
+readme = "README.md"
+repository = "https://github.com/KTheMan/slint-webview"
+homepage = "https://github.com/KTheMan/slint-webview"
+documentation = "https://docs.rs/slint-webview"
+keywords = ["slint", "webview", "wry", "webview2", "webkitgtk"]
+categories = ["gui", "web-programming", "api-bindings"]
+include = [
+    "Cargo.toml",
+    "Cargo.lock",
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "RELEASE.md",
+    "COPYING",
+    "COPYING.LESSER",
+    "src/**",
+    "tests/**",
+    "examples/**",
+    "fixtures/**",
+    "docs/**",
+    "scripts/**",
+]
+publish = false
+
+[features]
+default = ["backend-wry"]
+backend-wry = ["dep:wry", "dep:gtk", "dep:gdkx11", "dep:x11rb"]
+testing = []
+
+[dependencies]
+raw-window-handle = "0.6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+slint = { version = "=1.14.1", features = ["raw-window-handle-06"] }
+thiserror = "2"
+wry = { version = "0.55.1", optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+gdkx11 = { version = "0.18", optional = true }
+gtk = { version = "0.18", optional = true }
+x11rb = { version = "0.13", optional = true }
+
+[[bin]]
+name = "slint-webview-regression"
+path = "src/bin/regression_app.rs"
+required-features = ["backend-wry", "testing"]

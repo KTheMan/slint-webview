@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>slint-webview-fixture-ready</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #101820;
+      color: #eef4f8;
+    }
+
+    body {
+      margin: 0;
+      min-height: 1400px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 16px;
+      background: #18384f;
+      border-bottom: 2px solid #2ec4b6;
+    }
+
+    main {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) minmax(260px, 1fr);
+      gap: 16px;
+    }
+
+    section {
+      background: #172635;
+      border: 1px solid #36546a;
+      border-radius: 6px;
+      padding: 14px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input,
+    textarea,
+    select,
+    button {
+      box-sizing: border-box;
+      width: 100%;
+      margin-top: 4px;
+      padding: 8px;
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      background: #2ec4b6;
+      color: #072025;
+      border: 0;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .sentinel {
+      position: fixed;
+      width: 28px;
+      height: 28px;
+      z-index: 10;
+      border: 2px solid #ffffff;
+    }
+
+    #sentinel-top-left { top: 0; left: 0; background: #ff3b30; }
+    #sentinel-top-right { top: 0; right: 0; background: #ffcc00; }
+    #sentinel-bottom-left { bottom: 0; left: 0; background: #34c759; }
+    #sentinel-bottom-right { bottom: 0; right: 0; background: #007aff; }
+    #sentinel-center {
+      top: calc(50% - 14px);
+      left: calc(50% - 14px);
+      background: #af52de;
+    }
+
+    #log {
+      min-height: 150px;
+      max-height: 300px;
+      overflow: auto;
+      white-space: pre-wrap;
+      background: #0b1218;
+      padding: 8px;
+      border: 1px solid #36546a;
+    }
+
+    .scroll-box {
+      height: 260px;
+      overflow: auto;
+      border: 1px solid #36546a;
+      padding: 8px;
+      background: #0f1b24;
+    }
+
+    .scroll-inner {
+      height: 800px;
+      background:
+        linear-gradient(90deg, rgba(46, 196, 182, 0.18) 1px, transparent 1px),
+        linear-gradient(rgba(46, 196, 182, 0.18) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+  </style>
+</head>
+<body>
+  <div id="sentinel-top-left" class="sentinel" data-testid="sentinel-top-left"></div>
+  <div id="sentinel-top-right" class="sentinel" data-testid="sentinel-top-right"></div>
+  <div id="sentinel-bottom-left" class="sentinel" data-testid="sentinel-bottom-left"></div>
+  <div id="sentinel-bottom-right" class="sentinel" data-testid="sentinel-bottom-right"></div>
+  <div id="sentinel-center" class="sentinel" data-testid="sentinel-center"></div>
+
+  <header>
+    <strong id="ready-token">slint-webview-fixture-ready</strong>
+    <span id="viewport-readout"></span>
+  </header>
+
+  <main>
+    <section>
+      <h1>Input Surface</h1>
+      <label>Text input
+        <input id="fixture-input" placeholder="type here">
+      </label>
+      <label>Textarea
+        <textarea id="fixture-textarea" rows="4">fixture text</textarea>
+      </label>
+      <label>Select
+        <select id="fixture-select">
+          <option>Alpha</option>
+          <option>Beta</option>
+          <option>Gamma</option>
+        </select>
+      </label>
+      <label>
+        <input id="fixture-checkbox" type="checkbox"> checkbox marker
+      </label>
+      <button id="host-message-button" type="button">Post Host Message</button>
+      <button id="popup-button" type="button">Attempt Popup</button>
+      <a id="blocked-link" href="slint-blocked:navigation">Blocked navigation link</a>
+    </section>
+
+    <section>
+      <h1>Scroll And Paint</h1>
+      <canvas id="fixture-canvas" width="320" height="140"></canvas>
+      <div class="scroll-box" id="fixture-scroll-box">
+        <div class="scroll-inner">scroll sentinel</div>
+      </div>
+    </section>
+
+    <section>
+      <h1>Event Log</h1>
+      <pre id="log"></pre>
+    </section>
+
+    <section>
+      <h1>Frame</h1>
+      <iframe id="fixture-frame" srcdoc="<p id='frame-ready'>frame ready</p>"></iframe>
+    </section>
+  </main>
+
+  <script>
+    window.__eventLog = [];
+
+    function log(type, detail) {
+      const entry = {
+        type,
+        detail: String(detail ?? ""),
+        active: document.activeElement && document.activeElement.id || "",
+        scrollY: window.scrollY,
+        at: Date.now()
+      };
+      window.__eventLog.push(entry);
+      window.__eventLog = window.__eventLog.slice(-80);
+      document.getElementById("log").textContent = JSON.stringify(window.__eventLog, null, 2);
+    }
+
+    function postActivity(type, target) {
+      if (!window.ipc || !window.ipc.postMessage) {
+        return;
+      }
+      window.ipc.postMessage(JSON.stringify({
+        source: "fixture",
+        kind: "activity",
+        event: type,
+        target: target && target.id || "",
+        active: document.activeElement && document.activeElement.id || "",
+        token: "slint-webview-fixture-ready"
+      }));
+    }
+
+    function readout() {
+      document.getElementById("viewport-readout").textContent =
+        `${window.innerWidth}x${window.innerHeight} dpr ${window.devicePixelRatio}`;
+    }
+
+    function drawCanvas() {
+      const canvas = document.getElementById("fixture-canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#2ec4b6";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#101820";
+      ctx.font = "20px system-ui";
+      ctx.fillText("canvas paint sentinel", 22, 72);
+    }
+
+    for (const name of ["focusin", "focusout", "keydown", "pointerdown", "wheel", "contextmenu"]) {
+      window.addEventListener(name, event => {
+        log(name, event.target && event.target.id);
+        if (name === "focusin" || name === "keydown" || name === "pointerdown") {
+          postActivity(name, event.target);
+        }
+      }, { passive: true });
+    }
+
+    window.addEventListener("resize", () => {
+      readout();
+      log("resize", `${window.innerWidth}x${window.innerHeight}`);
+    });
+
+    document.getElementById("host-message-button").addEventListener("click", () => {
+      const payload = JSON.stringify({
+        source: "fixture",
+        kind: "button-click",
+        token: "slint-webview-fixture-ready"
+      });
+      if (window.ipc && window.ipc.postMessage) {
+        window.ipc.postMessage(payload);
+      }
+      log("host-message", payload);
+    });
+
+    document.getElementById("popup-button").addEventListener("click", () => {
+      window.open("about:blank", "_blank");
+      log("popup-attempt", "about:blank");
+    });
+
+    window.__slintWebViewTest = {
+      state() {
+        return {
+          token: "slint-webview-fixture-ready",
+          title: document.title,
+          focusedId: document.activeElement && document.activeElement.id || null,
+          scrollY: window.scrollY,
+          viewport: {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            dpr: window.devicePixelRatio
+          },
+          inputValue: document.getElementById("fixture-input").value,
+          checkbox: document.getElementById("fixture-checkbox").checked,
+          eventLog: window.__eventLog
+        };
+      },
+      setInput(value) {
+        document.getElementById("fixture-input").value = String(value);
+        log("set-input", value);
+      },
+      clearLog() {
+        window.__eventLog.length = 0;
+        log("clear-log", "ok");
+      }
+    };
+
+    readout();
+    drawCanvas();
+    log("ready", "slint-webview-fixture-ready");
+  </script>
+</body>
+</html>
