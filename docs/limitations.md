@@ -48,7 +48,7 @@ stack exposed through Wry.
 - Slint-owned web texture rendering.
 - Servo backend.
 - CEF backend.
-- Multi-crate shared-core/backend split.
+- Wry implementation moved into `slint-webview-native`.
 - Public custom protocol API.
 - Permission prompt interception.
 - Runtime diagnostics for missing platform runtimes before attach.

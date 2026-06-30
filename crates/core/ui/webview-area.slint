@@ -1,0 +1,41 @@
+// Copyright (C) 2026
+//
+// This component is a Slint-side placeholder and policy surface for a native
+// child webview. The web content is still owned by the Rust controller.
+
+export component WebViewArea inherits Rectangle {
+    in-out property <bool> requested-visible: true;
+    in property <bool> overlay-active: false;
+    in property <bool> available: true;
+    in property <bool> parked: false;
+    in property <string> status-text: "";
+    out property <bool> effective-visible: root.requested-visible && root.available && !root.overlay-active && !root.parked;
+
+    callback focus-requested();
+    callback focus-released();
+    callback reload-requested();
+
+    min-width: 160px;
+    min-height: 120px;
+    clip: true;
+    background: root.effective-visible ? #00000000 : #d6e4eb;
+    border-width: 1px;
+    border-color: root.effective-visible ? #29c4b6 : #93a6b2;
+
+    TouchArea {
+        clicked => {
+            root.focus-requested();
+        }
+    }
+
+    Text {
+        x: 16px;
+        y: 16px;
+        width: root.width - 32px;
+        text: root.status-text;
+        color: #40586a;
+        font-size: 16px;
+        opacity: root.effective-visible ? 0 : 1;
+        overflow: elide;
+    }
+}

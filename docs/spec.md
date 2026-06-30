@@ -21,10 +21,10 @@ types directly.
 The crate also ships `ui/webview-area.slint`, a declarative placeholder
 component for apps that want the webview represented in their Slint UI tree.
 
-Future backend crates should implement the same public contract from a shared
-core crate. The planned names are `slint-webview-native`,
-`slint-webview-servo`, and `slint-webview-cef`, with `slint-webview` remaining a
-facade crate.
+Backend crates should implement the same public contract from
+`slint-webview-core`. The workspace now contains `slint-webview-native`,
+`slint-webview-servo`, and `slint-webview-cef` shells, with `slint-webview`
+remaining the facade crate.
 
 ## Lifecycle
 
@@ -106,5 +106,5 @@ Visual Hosting backend should report `CompositionTier::PlatformVisualHosting`.
 - `backend-wry`: enables the native Wry backend. This is the default feature.
 - `testing`: exposes fixture helpers and the regression app.
 
-`cargo test --no-default-features` verifies that the public API still compiles
-when no native backend is selected.
+`cargo test --workspace --no-default-features` verifies that the public API and
+backend crate shells still compile when no native backend is selected.

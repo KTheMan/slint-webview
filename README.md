@@ -14,12 +14,14 @@ workspace are non-authoritative unless a maintainer explicitly points to them.
 
 ## What This Is
 
+- A Rust workspace with shared `slint-webview-core` types and a root
+  `slint-webview` facade/native crate.
 - A Rust library API centered on `WebViewController`.
 - A Tier 1.5 `WebViewArea`/`WebViewAreaController` composition layer for Slint
   apps that want reusable parking, overlay, and focus policy.
 - A Wry-backed native child-view implementation.
-- A documented path toward shared-core backend crates for native, Servo, and
-  CEF implementations.
+- Compileable crate shells for `slint-webview-native`, `slint-webview-servo`,
+  and `slint-webview-cef`.
 - Conservative defaults: blank page, JavaScript off, devtools off, clipboard
   off, downloads off, popups off, initial webview focus off.
 - Structured events for navigation, IPC, title changes, script results, popups,
@@ -114,7 +116,7 @@ See [examples/area.rs](examples/area.rs) and
 
 ## Backend Direction
 
-The intended longer-term package shape is a shared core plus backend crates:
+The repository now has a shared core plus backend crate shells:
 
 - `slint-webview-core` for API types, events, policy, fixtures, and Slint
   component assets.
@@ -125,7 +127,9 @@ The intended longer-term package shape is a shared core plus backend crates:
 
 Native remains the smallest platform-integrated path. Servo and CEF are the
 consistency paths because they can target Slint-owned texture/offscreen
-composition. See [docs/backend-crate-strategy.md](docs/backend-crate-strategy.md).
+composition. The Wry implementation still lives in the facade crate until it is
+mechanically moved into `slint-webview-native`. See
+[docs/backend-crate-strategy.md](docs/backend-crate-strategy.md).
 
 ## Installation
 
@@ -155,8 +159,9 @@ slint-webview = { git = "https://github.com/KTheMan/slint-webview", default-feat
 | `backend-wry` | yes | Enables the native Wry backend |
 | `testing` | no | Enables fixture helpers and the regression app |
 
-`backend-wry` pulls in platform webview dependencies. On Linux, GTK/WebKitGTK
-development packages are required only when this feature is enabled.
+`backend-wry` pulls in platform webview dependencies for the root facade crate.
+On Linux, GTK/WebKitGTK development packages are required only when this feature
+is enabled.
 
 ## Platform Matrix
 
@@ -235,9 +240,10 @@ cargo run --features testing --bin slint-webview-regression -- --smoke
 
 ## Release Status
 
-`0.1.0` is a release candidate. The package dry-run passes locally, but
-`publish = false` remains set. Before publishing to crates.io, decide the
-public stability label, Cargo.lock policy, and macOS verification stance.
+`0.1.0` is a release candidate. Workspace gates pass locally, and the
+`slint-webview-core` package dry-run passes. The facade package dry-run is
+blocked until `slint-webview-core` is published or deliberately vendored for a
+release. `publish = false` remains set.
 
 ## License
 

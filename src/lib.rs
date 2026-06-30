@@ -11,23 +11,17 @@
 #![deny(unsafe_code)]
 #![warn(missing_docs)]
 
-mod api;
 mod area;
-mod capabilities;
 mod controller;
-mod error;
-#[cfg(any(test, feature = "testing"))]
-pub mod fixture;
 mod platform;
 
-pub use api::{
-    NavigationDecision, NavigationPolicy, ScriptRequestId, WebViewBounds, WebViewEvent,
-    WebViewOptions, WebViewSource,
-};
-pub use area::{
-    DEFAULT_PARK_BOUNDS, HiddenWebViewStrategy, WebViewAreaController, WebViewAreaPlacement,
-    WebViewAreaPolicy, WebViewAreaState, WebViewAreaStatus,
-};
-pub use capabilities::{CompositionTier, WebViewCapabilities};
+pub use area::WebViewAreaController;
 pub use controller::{WebViewController, initialize_platform, pump_platform_events};
-pub use error::{Result, WebViewError};
+#[cfg(feature = "testing")]
+pub use slint_webview_core::fixture;
+pub use slint_webview_core::{
+    CompositionTier, DEFAULT_PARK_BOUNDS, HiddenWebViewStrategy, NavigationDecision,
+    NavigationPolicy, Result, ScriptRequestId, WebViewAreaPlacement, WebViewAreaPolicy,
+    WebViewAreaState, WebViewAreaStatus, WebViewBounds, WebViewCapabilities, WebViewError,
+    WebViewEvent, WebViewOptions, WebViewSource,
+};

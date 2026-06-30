@@ -7,8 +7,8 @@ The test strategy has three layers.
 Run:
 
 ```powershell
-cargo test --no-default-features
-cargo test
+cargo test --workspace --no-default-features
+cargo test --workspace
 ```
 
 These verify serializable API types, conservative defaults, navigation policy,
@@ -22,8 +22,8 @@ Run:
 
 ```powershell
 cargo fmt --check
-cargo clippy --all-targets --all-features -- -D warnings
-cargo doc --all-features --no-deps
+cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo doc --workspace --all-features --no-deps
 ```
 
 Warnings are treated as failures for production-shape work.
@@ -54,7 +54,7 @@ are useful for manual stress testing, but they are not stable regression inputs.
 The widget-style composition example compiles as part of `--all-targets` checks:
 
 ```powershell
-cargo check --examples --all-features
+cargo check --workspace --examples --all-features
 ```
 
 Run it manually when validating the reusable area wrapper:
@@ -78,6 +78,8 @@ bash scripts/package.sh
 ```
 
 These scripts run formatting, clippy, API tests with and without the native
-backend, rustdoc, and `cargo package --allow-dirty`. The Linux script exits with
-code 20 when native GTK/WebKitGTK packages are missing after proving the
-no-default-features API path.
+backend, rustdoc, and `cargo package -p slint-webview-core --allow-dirty`. The
+facade package dry-run remains blocked until `slint-webview-core` is published
+or vendored for a release. The Linux script exits with code 20 when native
+GTK/WebKitGTK packages are missing after proving the no-default-features API
+path.

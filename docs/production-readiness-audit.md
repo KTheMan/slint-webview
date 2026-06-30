@@ -10,15 +10,15 @@ separately in `RELEASE.md`.
 
 ## Current Judgment
 
-The crate is production-shaped enough for internal integration, package dry-run,
-and release-candidate review. It should still remain `publish = false` until
-public stability, repository metadata, Cargo.lock policy, and macOS verification
-decisions are made.
+The workspace is production-shaped enough for internal integration, core
+package dry-run, and release-candidate review. It should still remain
+`publish = false` until public stability, repository metadata, Cargo.lock
+policy, package ordering, and macOS verification decisions are made.
 
 The most important hardening work is complete:
 
-- Public API is centered on `WebViewController` plus the Tier 1.5
-  `WebViewAreaController`; backend types are private.
+- Public API is centered on core re-exports, `WebViewController`, and the Tier
+  1.5 `WebViewAreaController`; backend types are private.
 - Defaults are conservative and no longer load fixture content.
 - Fixture helpers and the regression app are behind the `testing` feature.
 - Navigation policy is caller-configurable.
@@ -33,8 +33,11 @@ The most important hardening work is complete:
   notes, and licensing.
 - Canonical check scripts run formatting, clippy, tests, docs, and regression
   binary checks.
-- Release package scripts run the static gates and `cargo package`.
+- Release package scripts run the static gates and `cargo package` for
+  `slint-webview-core`.
 - The manifest has an explicit package `include` list.
+- Shared API and area-policy types now live in `slint-webview-core`.
+- Native, Servo, and CEF backend crate shells compile against the shared core.
 - Linux native backend dependencies are optional behind `backend-wry`, so
   `--no-default-features` remains a pure API build.
 
@@ -87,8 +90,9 @@ Current API caveats:
   preflight report.
 - The shipped Slint component is a source component import, not yet a Slint
   experimental crate module.
-- The repository has a documented backend split strategy, but it has not yet
-  been mechanically split into `core`, `native`, `servo`, and `cef` crates.
+- The repository has been mechanically split enough to include `core`, `native`,
+  `servo`, and `cef` crates, but Wry implementation code still lives in the
+  facade crate.
 
 ## Functional Review
 
@@ -149,13 +153,14 @@ Current regression coverage proves:
 - Pure API behavior with and without the default backend.
 - Pure `WebViewAreaPolicy` placement behavior with and without the default
   backend.
+- Workspace compilation for core plus native, Servo, and CEF shells.
 - Formatting, clippy, and rustdoc gates.
 - `examples/area.rs` compilation through all-target checks.
 - Regression app compilation behind `testing`.
 - Windows WebView2 smoke attach and DOM probe.
 - Windows composed-window visual sentinel check.
 - WSL WebKitGTK smoke attach and DOM probe when dependencies are installed.
-- Package dry-run on Windows.
+- `slint-webview-core` package dry-run on Windows.
 
 Coverage that should be added before public release:
 
@@ -182,8 +187,10 @@ Current package state:
 Before publish, decide:
 
 - Public crate name.
-- Whether to publish one facade crate first or split into shared-core and
-  backend crates before the first crates.io release.
+- Whether to publish one facade crate first or move the Wry implementation into
+  `slint-webview-native` before the first crates.io release.
+- Whether `slint-webview-core` is published first or vendored before the facade
+  package is dry-run verified.
 - Whether to include `Cargo.lock`.
 - Public stability label: alpha, preview, or experimental.
 

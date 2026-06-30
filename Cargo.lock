@@ -4467,12 +4467,40 @@ dependencies = [
  "gdkx11",
  "gtk",
  "raw-window-handle",
- "serde",
  "serde_json",
  "slint",
- "thiserror 2.0.18",
+ "slint-webview-core",
  "wry",
  "x11rb",
+]
+
+[[package]]
+name = "slint-webview-cef"
+version = "0.1.0"
+dependencies = [
+ "slint-webview-core",
+]
+
+[[package]]
+name = "slint-webview-core"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "slint-webview-native"
+version = "0.1.0"
+dependencies = [
+ "slint-webview-core",
+]
+
+[[package]]
+name = "slint-webview-servo"
+version = "0.1.0"
+dependencies = [
+ "slint-webview-core",
 ]
 
 [[package]]

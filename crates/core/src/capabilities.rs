@@ -61,6 +61,42 @@ impl WebViewCapabilities {
         }
     }
 
+    /// Planned capabilities for a Servo texture-backed backend.
+    pub const fn servo_texture() -> Self {
+        Self {
+            backend_name: "servo",
+            engine_name: "Servo",
+            composition_tier: CompositionTier::SlintOwnedTexture,
+            supports_transparency: true,
+            supports_clipping: true,
+            supports_overlays_above_webview: true,
+            supports_script_eval: true,
+            supports_host_messaging: true,
+            supports_custom_user_agent: true,
+            supports_download_interception: false,
+            supports_permission_interception: false,
+            requires_external_runtime: false,
+        }
+    }
+
+    /// Planned capabilities for a CEF offscreen Chromium backend.
+    pub const fn cef_offscreen() -> Self {
+        Self {
+            backend_name: "cef",
+            engine_name: "Chromium/CEF",
+            composition_tier: CompositionTier::SlintOwnedTexture,
+            supports_transparency: true,
+            supports_clipping: true,
+            supports_overlays_above_webview: true,
+            supports_script_eval: true,
+            supports_host_messaging: true,
+            supports_custom_user_agent: true,
+            supports_download_interception: true,
+            supports_permission_interception: true,
+            requires_external_runtime: true,
+        }
+    }
+
     /// Capabilities reported when no backend is compiled.
     pub const fn unsupported() -> Self {
         Self {
@@ -107,5 +143,17 @@ mod tests {
         assert_eq!(caps.backend_name, "wry");
         assert_eq!(caps.composition_tier, CompositionTier::NativeChildView);
         assert!(caps.supports_script_eval);
+    }
+
+    #[test]
+    fn texture_backends_report_slint_owned_composition() {
+        assert_eq!(
+            WebViewCapabilities::servo_texture().composition_tier,
+            CompositionTier::SlintOwnedTexture
+        );
+        assert_eq!(
+            WebViewCapabilities::cef_offscreen().composition_tier,
+            CompositionTier::SlintOwnedTexture
+        );
     }
 }

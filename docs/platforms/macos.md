@@ -19,8 +19,8 @@ built and exercised on macOS.
 Run the equivalent of:
 
 ```bash
-cargo test
-cargo clippy --all-targets --all-features -- -D warnings
+cargo test --workspace
+cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo run --features testing --bin slint-webview-regression -- --smoke
 ```
 

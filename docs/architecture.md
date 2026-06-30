@@ -1,34 +1,37 @@
 # Architecture
 
-`slint-webview` is currently split into a small public API and a private Wry
-backend adapter. It is intended to evolve into a shared-core package plus
-backend-specific crates.
+`slint-webview` is a workspace with a shared core crate, a root facade/native
+crate, and backend crate shells for native, Servo, and CEF implementations.
 
 ## Layers
 
-- Public API: option types, events, capabilities, errors, `WebViewController`,
-  and the Tier 1.5 `WebViewAreaController` policy wrapper.
+- Core API: option types, events, capabilities, errors, fixtures, and area
+  policy live in `slint-webview-core`.
+- Facade API: the root `slint-webview` crate re-exports core types and provides
+  `WebViewController` plus the Tier 1.5 `WebViewAreaController` wrapper.
 - Controller: owns the backend instance, event receiver, and script request ID
   allocation.
 - Area controller: maps Slint placeholder state to native bounds, visibility,
   parking, and focus policy.
-- Backend adapter: translates controller operations to Wry calls.
+- Backend adapter: translates controller operations to Wry calls in the root
+  crate for now.
 - Slint component: `ui/webview-area.slint` provides the declarative placeholder
   and callbacks used by applications.
 - Regression app: Slint UI plus native webview, compiled only with
   `--features testing`.
 
-## Future Package Split
+## Package Split
 
-The preferred long-term shape is:
+The workspace shape is:
 
 - `slint-webview-core`: shared API, event model, area policy, fixtures, docs,
   and Slint component assets.
-- `slint-webview-native`: Wry and native platform webviews.
-- `slint-webview-servo`: Servo rendered into Slint-owned textures.
-- `slint-webview-cef`: CEF windowless/offscreen Chromium rendered into
-  Slint-owned textures.
-- `slint-webview`: facade crate that picks a backend through features.
+- `slint-webview-native`: shell for Wry and native platform webviews.
+- `slint-webview-servo`: shell for Servo rendered into Slint-owned textures.
+- `slint-webview-cef`: shell for CEF windowless/offscreen Chromium rendered
+  into Slint-owned textures.
+- `slint-webview`: facade crate that currently owns the Wry backend and will
+  later pick a backend through features.
 
 The current crate should not expose backend types, because the same
 `WebViewController` and `WebViewAreaController` contract should be usable by all

@@ -1,0 +1,29 @@
+[package]
+name = "slint-webview-core"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.92"
+description = "Shared API and policy types for Slint webview backends."
+license = "LGPL-3.0-only"
+readme = "README.md"
+repository = "https://github.com/KTheMan/slint-webview"
+homepage = "https://github.com/KTheMan/slint-webview"
+documentation = "https://docs.rs/slint-webview-core"
+keywords = ["slint", "webview", "servo", "cef"]
+categories = ["gui", "web-programming", "api-bindings"]
+include = [
+    "Cargo.toml",
+    "README.md",
+    "src/**",
+    "ui/**",
+    "fixtures/**",
+]
+publish = false
+
+[features]
+default = []
+testing = []
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"

@@ -30,8 +30,8 @@ Initial release candidate for native webview composition in Slint apps.
 - Compileable `examples/area.rs` demonstrating `WebViewAreaController`.
 - Documentation for architecture, API shape, security model, limitations,
   testing, licensing, and platform notes.
-- Backend crate strategy documenting the planned `core`, `native`, `servo`,
-  `cef`, and facade package split.
+- `slint-webview-core` shared crate plus compileable `native`, `servo`, and
+  `cef` backend crate shells.
 
 ### Known Limitations
 

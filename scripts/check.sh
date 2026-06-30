@@ -17,14 +17,14 @@ for arg in "$@"; do
 done
 
 cargo fmt --check
-cargo test --no-default-features
+cargo test --workspace --no-default-features
 
 if command -v pkg-config >/dev/null 2>&1 \
   && pkg-config --exists gtk+-3.0 \
   && pkg-config --exists webkit2gtk-4.1; then
-  cargo clippy --all-targets --all-features -- -D warnings
-  cargo test
-  cargo doc --all-features --no-deps
+  cargo clippy --workspace --all-targets --all-features -- -D warnings
+  cargo test --workspace
+  cargo doc --workspace --all-features --no-deps
   cargo check --features testing --bin slint-webview-regression
 
   if [[ "$smoke" -eq 1 ]]; then

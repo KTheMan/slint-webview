@@ -1,13 +1,13 @@
 # Backend Crate Strategy
 
-This crate should evolve toward a shared core plus backend-specific crates. The
-goal is to keep the Slint API, events, security defaults, tests, and component
-shape uniform while allowing each rendering engine to solve only its final
+This workspace uses a shared core plus backend-specific crate shells. The goal
+is to keep the Slint API, events, security defaults, tests, and component shape
+uniform while allowing each rendering engine to solve only its final
 platform-specific integration step.
 
 ## Package Topology
 
-Recommended package split:
+Package split:
 
 | Crate | Role | Composition target |
 | --- | --- | --- |
@@ -17,10 +17,10 @@ Recommended package split:
 | `slint-webview-cef` | CEF windowless/offscreen Chromium backend | `SlintOwnedTexture`, with platform-specific accelerated paths |
 | `slint-webview` | Convenience facade crate selecting one backend with features | Depends on core plus one backend |
 
-The current single crate is the release-candidate shape for
-`slint-webview-native` plus the future shared core. A mechanical split should
-come after the backend contract is stable enough that examples and tests can run
-against multiple implementations.
+The workspace now contains `slint-webview-core` plus shell crates for native,
+Servo, and CEF. The current Wry implementation still lives in the root
+`slint-webview` facade crate until the backend contract is stable enough to move
+that code into `slint-webview-native` without disrupting examples and tests.
 
 ## Backend Contract
 
@@ -110,12 +110,12 @@ observable behavior.
 
 ## Migration Plan
 
-1. Keep the current crate published as `slint-webview` only after the owner
-   decides to publish.
-2. Introduce an internal backend trait behind the existing controller without
-   changing public API.
-3. Move API types, `WebViewAreaController`, fixture HTML, docs, and tests into
+1. Keep the current crate unpublished as `slint-webview` until the owner
+   decides release policy.
+2. Keep shared API, event, fixture, capability, error, and area-policy types in
    `slint-webview-core`.
+3. Introduce an internal backend trait behind the existing controller without
+   changing public API.
 4. Move Wry code into `slint-webview-native` and make the facade depend on it
    by default.
 5. Add `slint-webview-servo` behind an opt-in feature or separate example app.

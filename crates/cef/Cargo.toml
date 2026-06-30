@@ -1,0 +1,13 @@
+[package]
+name = "slint-webview-cef"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.92"
+description = "CEF offscreen Chromium backend for Slint webview composition."
+license = "LGPL-3.0-only"
+readme = "README.md"
+repository = "https://github.com/KTheMan/slint-webview"
+publish = false
+
+[dependencies]
+slint-webview-core = { path = "../core" }

@@ -13,7 +13,7 @@ sudo apt install -y build-essential pkg-config libgtk-3-dev libwebkit2gtk-4.1-de
 ```
 
 Without these packages, `scripts/check.sh` still runs
-`cargo test --no-default-features` and reports that native webview dependencies
+`cargo test --workspace --no-default-features` and reports that native webview dependencies
 are missing.
 
 ## Verification From Windows

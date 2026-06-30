@@ -11,9 +11,10 @@ Slint-facing area wrapper for native-child composition, deterministic regression
 coverage, and clear documentation. Publishing is explicitly out of scope for
 this milestone.
 
-The follow-on product direction is a shared core with separate native, Servo,
-and CEF backend crates. Native targets minimum footprint and platform fidelity;
-Servo and CEF target more uniform Slint-owned composition.
+The follow-on product direction is now represented in the workspace by a shared
+core plus separate native, Servo, and CEF backend crate shells. Native targets
+minimum footprint and platform fidelity; Servo and CEF target more uniform
+Slint-owned composition.
 
 ## Users
 
@@ -56,10 +57,10 @@ Servo and CEF target more uniform Slint-owned composition.
 ## Acceptance Criteria
 
 - `cargo fmt --check` passes.
-- `cargo clippy --all-targets --all-features -- -D warnings` passes.
-- `cargo test --no-default-features` passes.
-- `cargo test` passes.
-- `cargo doc --all-features --no-deps` passes.
+- `cargo clippy --workspace --all-targets --all-features -- -D warnings` passes.
+- `cargo test --workspace --no-default-features` passes.
+- `cargo test --workspace` passes.
+- `cargo doc --workspace --all-features --no-deps` passes.
 - Regression app compiles behind `--features testing`.
 - Windows smoke proves attach, DOM probe, event loop operation, and clean exit.
 - Windows visual smoke captures the composed application and validates sentinel
@@ -76,6 +77,5 @@ Servo and CEF target more uniform Slint-owned composition.
 - Whether custom protocols should be exposed in the first public API.
 - Whether async/future-based script evaluation should wrap the current event
   correlation model.
-- Whether the repository should split into `slint-webview-core`,
-  `slint-webview-native`, `slint-webview-servo`, `slint-webview-cef`, and a
-  facade crate before the first public crates.io release.
+- Whether the Wry implementation should move from the facade crate into
+  `slint-webview-native` before the first public crates.io release.
