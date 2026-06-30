@@ -34,6 +34,9 @@ Initial release candidate for native webview composition in Slint apps.
   `cef` backend crate shells.
 - `WebViewBackend` and `BackendWebViewController` shared backend contract for
   native, Servo, and CEF implementations.
+- `WebViewControllerLike` and `BackendWebViewAreaController` shared area
+  contract so native, Servo, and CEF controllers can reuse the same Slint
+  placeholder, overlay, parking, and focus policy.
 
 ### Known Limitations
 

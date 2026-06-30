@@ -94,11 +94,18 @@ visible, which is often faster and less visually stale than the native hide path
 on WSLg/WebKitGTK. Apps can choose `Hide` or `HideAndPark` when a platform or
 product policy needs a different behavior.
 
+Internally, the root native `WebViewAreaController` delegates to
+`slint-webview-core::BackendWebViewAreaController<WebViewController>`.
+Non-native backends should reuse the same core area controller by implementing
+`WebViewControllerLike` for their public controller type. That keeps overlay,
+parking, event-driven focus, and shell-focus release behavior uniform across
+native, Servo, and CEF.
+
 ## `WebViewBackend`
 
 `slint-webview-core` exposes `WebViewBackend` and
 `BackendWebViewController<B>`. Backend crates implement `WebViewBackend` for
-their concrete engine surface, then use the shared controller for:
+their concrete engine surface, then use the shared low-level controller for:
 
 - Event draining.
 - Script request ID allocation.

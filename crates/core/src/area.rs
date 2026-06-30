@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::WebViewBounds;
+use crate::{
+    BackendWebViewController, Result, ScriptRequestId, WebViewBackend, WebViewBounds,
+    WebViewCapabilities, WebViewEvent, WebViewSource,
+};
 
 /// Default offscreen rectangle used when a native child webview is parked.
 pub const DEFAULT_PARK_BOUNDS: WebViewBounds = WebViewBounds::new(-32000.0, -32000.0, 1.0, 1.0);
@@ -207,9 +210,398 @@ pub struct WebViewAreaStatus {
     pub keyboard_focus_enabled: bool,
 }
 
+/// Portable controller operations required by [`BackendWebViewAreaController`].
+///
+/// Backend crates can implement this trait directly for their public
+/// controller type. The shared area controller then owns the policy for
+/// geometry, visibility, focus release, and focus-request events without
+/// knowing whether the underlying engine is native, Servo, or CEF.
+pub trait WebViewControllerLike {
+    /// Returns static capabilities for this controller backend.
+    fn capabilities() -> WebViewCapabilities
+    where
+        Self: Sized;
+
+    /// Drains all events currently queued for this controller.
+    fn drain_events(&self) -> Vec<WebViewEvent>;
+
+    /// Updates webview bounds in Slint logical window coordinates.
+    fn set_bounds(&self, bounds: WebViewBounds) -> Result<()>;
+
+    /// Shows or hides the backend surface.
+    fn set_visible(&self, visible: bool) -> Result<()>;
+
+    /// Loads a source into the webview.
+    fn load_source(&self, source: WebViewSource) -> Result<()>;
+
+    /// Loads an HTML string into the webview.
+    fn load_html(&self, html: &str) -> Result<()>;
+
+    /// Loads a URL into the webview.
+    fn load_url(&self, url: &str) -> Result<()>;
+
+    /// Evaluates JavaScript and returns the matching request ID.
+    fn evaluate_script(&self, script: &str) -> Result<ScriptRequestId>;
+
+    /// Requests keyboard focus for the backend.
+    fn focus(&self) -> Result<()>;
+
+    /// Enables or disables whether the backend may take keyboard focus.
+    fn set_keyboard_focus_enabled(&self, enabled: bool) -> Result<()>;
+
+    /// Returns focus to the host shell where supported.
+    fn focus_parent(&self) -> Result<()>;
+}
+
+impl<B> WebViewControllerLike for BackendWebViewController<B>
+where
+    B: WebViewBackend,
+{
+    fn capabilities() -> WebViewCapabilities {
+        BackendWebViewController::<B>::capabilities()
+    }
+
+    fn drain_events(&self) -> Vec<WebViewEvent> {
+        BackendWebViewController::drain_events(self)
+    }
+
+    fn set_bounds(&self, bounds: WebViewBounds) -> Result<()> {
+        BackendWebViewController::set_bounds(self, bounds)
+    }
+
+    fn set_visible(&self, visible: bool) -> Result<()> {
+        BackendWebViewController::set_visible(self, visible)
+    }
+
+    fn load_source(&self, source: WebViewSource) -> Result<()> {
+        BackendWebViewController::load_source(self, source)
+    }
+
+    fn load_html(&self, html: &str) -> Result<()> {
+        BackendWebViewController::load_html(self, html)
+    }
+
+    fn load_url(&self, url: &str) -> Result<()> {
+        BackendWebViewController::load_url(self, url)
+    }
+
+    fn evaluate_script(&self, script: &str) -> Result<ScriptRequestId> {
+        BackendWebViewController::evaluate_script(self, script)
+    }
+
+    fn focus(&self) -> Result<()> {
+        BackendWebViewController::focus(self)
+    }
+
+    fn set_keyboard_focus_enabled(&self, enabled: bool) -> Result<()> {
+        BackendWebViewController::set_keyboard_focus_enabled(self, enabled)
+    }
+
+    fn focus_parent(&self) -> Result<()> {
+        BackendWebViewController::focus_parent(self)
+    }
+}
+
+/// Shared area controller for a backend-specific webview controller.
+///
+/// This is the backend-agnostic composition layer for a Slint `WebViewArea`
+/// placeholder. It synchronizes native or rendered webview placement with the
+/// Slint-side area state, hides or parks the webview behind Slint overlays, and
+/// applies shared keyboard-focus policy.
+pub struct BackendWebViewAreaController<C> {
+    controller: C,
+    policy: WebViewAreaPolicy,
+    status: WebViewAreaStatus,
+}
+
+impl<C> BackendWebViewAreaController<C>
+where
+    C: WebViewControllerLike,
+{
+    /// Wraps an existing controller and applies area policy with keyboard focus
+    /// disabled.
+    pub fn from_controller(
+        controller: C,
+        state: WebViewAreaState,
+        policy: WebViewAreaPolicy,
+    ) -> Result<Self> {
+        Self::from_controller_with_keyboard_focus(controller, state, policy, false)
+    }
+
+    /// Wraps an existing controller and applies area policy with optional
+    /// initial keyboard focus.
+    ///
+    /// Initial keyboard focus is only retained when the resolved placement is
+    /// effectively visible and no shell input owns focus.
+    pub fn from_controller_with_keyboard_focus(
+        controller: C,
+        state: WebViewAreaState,
+        policy: WebViewAreaPolicy,
+        keyboard_focus_enabled: bool,
+    ) -> Result<Self> {
+        let placement = policy.resolve(state);
+        let keyboard_focus_enabled =
+            keyboard_focus_enabled && placement.effective_visible && !state.shell_focus_active;
+        controller.set_bounds(placement.bounds)?;
+        controller.set_visible(placement.native_visible)?;
+        controller.set_keyboard_focus_enabled(keyboard_focus_enabled)?;
+
+        Ok(Self {
+            controller,
+            policy,
+            status: WebViewAreaStatus {
+                state,
+                placement,
+                keyboard_focus_enabled,
+            },
+        })
+    }
+
+    /// Returns the capabilities of the selected backend.
+    pub fn capabilities() -> WebViewCapabilities {
+        C::capabilities()
+    }
+
+    /// Returns the active area policy.
+    pub fn policy(&self) -> WebViewAreaPolicy {
+        self.policy
+    }
+
+    /// Replaces the active area policy and reapplies it to the current state.
+    pub fn set_policy(&mut self, policy: WebViewAreaPolicy) -> Result<WebViewAreaStatus> {
+        self.policy = policy;
+        self.sync(self.status.state)
+    }
+
+    /// Returns the latest synchronized status.
+    pub fn status(&self) -> WebViewAreaStatus {
+        self.status
+    }
+
+    /// Returns the wrapped backend-specific controller.
+    pub fn controller(&self) -> &C {
+        &self.controller
+    }
+
+    /// Synchronizes bounds, visibility, parking, and focus policy.
+    pub fn sync(&mut self, state: WebViewAreaState) -> Result<WebViewAreaStatus> {
+        let placement = self.policy.resolve(state);
+
+        if self.status.placement.bounds != placement.bounds {
+            self.controller.set_bounds(placement.bounds)?;
+        }
+        if self.status.placement.native_visible != placement.native_visible {
+            self.controller.set_visible(placement.native_visible)?;
+        }
+
+        let should_release_focus = (self.policy.release_focus_when_hidden
+            && !placement.effective_visible)
+            || (self.policy.release_focus_when_shell_focused && state.shell_focus_active);
+        let mut keyboard_focus_enabled = self.status.keyboard_focus_enabled;
+        if should_release_focus && keyboard_focus_enabled {
+            self.release_keyboard_focus()?;
+            keyboard_focus_enabled = false;
+        }
+
+        self.status = WebViewAreaStatus {
+            state,
+            placement,
+            keyboard_focus_enabled,
+        };
+        Ok(self.status)
+    }
+
+    /// Runs a caller-provided event pump, synchronizes the area, drains webview
+    /// events, and applies built-in focus policy for those events.
+    pub fn tick_with<F>(
+        &mut self,
+        state: WebViewAreaState,
+        pump_events: F,
+    ) -> Result<Vec<WebViewEvent>>
+    where
+        F: FnOnce(),
+    {
+        pump_events();
+        self.sync(state)?;
+        self.drain_events()
+    }
+
+    /// Drains pending events and applies built-in focus policy for focus events.
+    pub fn drain_events(&mut self) -> Result<Vec<WebViewEvent>> {
+        let events = self.controller.drain_events();
+        for event in &events {
+            self.apply_event_policy(event)?;
+        }
+        Ok(events)
+    }
+
+    /// Loads a source into the webview.
+    pub fn load_source(&self, source: WebViewSource) -> Result<()> {
+        self.controller.load_source(source)
+    }
+
+    /// Loads an HTML string into the webview.
+    pub fn load_html(&self, html: &str) -> Result<()> {
+        self.controller.load_html(html)
+    }
+
+    /// Loads a URL into the webview.
+    pub fn load_url(&self, url: &str) -> Result<()> {
+        self.controller.load_url(url)
+    }
+
+    /// Evaluates JavaScript in the webview.
+    pub fn evaluate_script(&self, script: &str) -> Result<ScriptRequestId> {
+        self.controller.evaluate_script(script)
+    }
+
+    /// Allows keyboard focus and requests focus for the webview when the area is
+    /// effectively visible and no shell input owns focus.
+    pub fn focus_webview(&mut self) -> Result<()> {
+        if !self.status.placement.effective_visible || self.status.state.shell_focus_active {
+            self.release_keyboard_focus()?;
+            return Ok(());
+        }
+
+        self.controller.set_keyboard_focus_enabled(true)?;
+        self.controller.focus()?;
+        self.status.keyboard_focus_enabled = true;
+        Ok(())
+    }
+
+    /// Disables webview keyboard focus and returns focus to the parent window
+    /// where the backend supports it.
+    pub fn release_keyboard_focus(&mut self) -> Result<()> {
+        self.controller.set_keyboard_focus_enabled(false)?;
+        self.controller.focus_parent()?;
+        self.status.keyboard_focus_enabled = false;
+        Ok(())
+    }
+
+    fn apply_event_policy(&mut self, event: &WebViewEvent) -> Result<()> {
+        match event {
+            WebViewEvent::FocusRequested => {
+                if self.status.placement.effective_visible && !self.status.state.shell_focus_active
+                {
+                    self.focus_webview()?;
+                }
+            }
+            WebViewEvent::FocusChanged { focused } => {
+                self.status.keyboard_focus_enabled = *focused;
+                if !focused {
+                    self.controller.set_keyboard_focus_enabled(false)?;
+                }
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use std::cell::{Cell, RefCell};
+
     use super::*;
+    use crate::{CompositionTier, ScriptRequestId, WebViewCapabilities};
+
+    #[derive(Default)]
+    struct RecordingController {
+        operations: RefCell<Vec<String>>,
+        events: RefCell<Vec<WebViewEvent>>,
+        next_script_request_id: Cell<u64>,
+    }
+
+    impl RecordingController {
+        fn operations(&self) -> Vec<String> {
+            self.operations.borrow().clone()
+        }
+
+        fn queue_event(&self, event: WebViewEvent) {
+            self.events.borrow_mut().push(event);
+        }
+    }
+
+    impl WebViewControllerLike for RecordingController {
+        fn capabilities() -> WebViewCapabilities {
+            WebViewCapabilities {
+                backend_name: "recording",
+                engine_name: "test",
+                composition_tier: CompositionTier::SlintOwnedTexture,
+                supports_transparency: true,
+                supports_clipping: true,
+                supports_overlays_above_webview: true,
+                supports_script_eval: true,
+                supports_host_messaging: true,
+                supports_custom_user_agent: true,
+                supports_download_interception: false,
+                supports_permission_interception: false,
+                requires_external_runtime: false,
+            }
+        }
+
+        fn drain_events(&self) -> Vec<WebViewEvent> {
+            self.events.borrow_mut().drain(..).collect()
+        }
+
+        fn set_bounds(&self, bounds: WebViewBounds) -> Result<()> {
+            self.operations
+                .borrow_mut()
+                .push(format!("bounds:{}x{}", bounds.width, bounds.height));
+            Ok(())
+        }
+
+        fn set_visible(&self, visible: bool) -> Result<()> {
+            self.operations
+                .borrow_mut()
+                .push(format!("visible:{visible}"));
+            Ok(())
+        }
+
+        fn load_source(&self, source: WebViewSource) -> Result<()> {
+            self.operations
+                .borrow_mut()
+                .push(format!("source:{source:?}"));
+            Ok(())
+        }
+
+        fn load_html(&self, html: &str) -> Result<()> {
+            self.operations.borrow_mut().push(format!("html:{html}"));
+            Ok(())
+        }
+
+        fn load_url(&self, url: &str) -> Result<()> {
+            self.operations.borrow_mut().push(format!("url:{url}"));
+            Ok(())
+        }
+
+        fn evaluate_script(&self, script: &str) -> Result<ScriptRequestId> {
+            let request_id = ScriptRequestId(self.next_script_request_id.get());
+            self.next_script_request_id
+                .set(request_id.0.saturating_add(1).max(1));
+            self.operations
+                .borrow_mut()
+                .push(format!("script:{}:{script}", request_id.0));
+            Ok(request_id)
+        }
+
+        fn focus(&self) -> Result<()> {
+            self.operations.borrow_mut().push("focus".to_owned());
+            Ok(())
+        }
+
+        fn set_keyboard_focus_enabled(&self, enabled: bool) -> Result<()> {
+            self.operations
+                .borrow_mut()
+                .push(format!("keyboard:{enabled}"));
+            Ok(())
+        }
+
+        fn focus_parent(&self) -> Result<()> {
+            self.operations.borrow_mut().push("focus-parent".to_owned());
+            Ok(())
+        }
+    }
 
     #[test]
     fn default_policy_parks_when_overlay_is_active() {
@@ -255,5 +647,95 @@ mod tests {
         let placement = policy.resolve(state);
 
         assert_eq!(placement.bounds, DEFAULT_PARK_BOUNDS);
+    }
+
+    #[test]
+    fn area_controller_applies_initial_placement() {
+        let state = WebViewAreaState::new(WebViewBounds::new(10.0, 20.0, 300.0, 200.0));
+        let area = BackendWebViewAreaController::from_controller(
+            RecordingController::default(),
+            state,
+            WebViewAreaPolicy::default(),
+        )
+        .unwrap();
+
+        assert_eq!(
+            area.controller().operations(),
+            vec!["bounds:300x200", "visible:true", "keyboard:false"]
+        );
+        assert!(area.status().placement.effective_visible);
+        assert!(!area.status().keyboard_focus_enabled);
+    }
+
+    #[test]
+    fn area_controller_releases_focus_when_hidden() {
+        let state = WebViewAreaState::new(WebViewBounds::new(10.0, 20.0, 300.0, 200.0));
+        let mut area = BackendWebViewAreaController::from_controller_with_keyboard_focus(
+            RecordingController::default(),
+            state,
+            WebViewAreaPolicy::default(),
+            true,
+        )
+        .unwrap();
+
+        area.sync(state.with_overlay_active(true)).unwrap();
+
+        assert_eq!(
+            area.controller().operations(),
+            vec![
+                "bounds:300x200",
+                "visible:true",
+                "keyboard:true",
+                "bounds:1x1",
+                "keyboard:false",
+                "focus-parent",
+            ]
+        );
+        assert!(!area.status().placement.effective_visible);
+        assert!(!area.status().keyboard_focus_enabled);
+    }
+
+    #[test]
+    fn area_controller_applies_focus_requested_event_policy() {
+        let state = WebViewAreaState::new(WebViewBounds::new(10.0, 20.0, 300.0, 200.0));
+        let mut area = BackendWebViewAreaController::from_controller(
+            RecordingController::default(),
+            state,
+            WebViewAreaPolicy::default(),
+        )
+        .unwrap();
+        area.controller().queue_event(WebViewEvent::FocusRequested);
+
+        assert_eq!(
+            area.drain_events().unwrap(),
+            vec![WebViewEvent::FocusRequested]
+        );
+        assert_eq!(
+            area.controller().operations(),
+            vec![
+                "bounds:300x200",
+                "visible:true",
+                "keyboard:false",
+                "keyboard:true",
+                "focus",
+            ]
+        );
+        assert!(area.status().keyboard_focus_enabled);
+    }
+
+    #[test]
+    fn area_controller_uses_caller_event_pump() {
+        let pumped = Cell::new(false);
+        let state = WebViewAreaState::new(WebViewBounds::new(10.0, 20.0, 300.0, 200.0));
+        let mut area = BackendWebViewAreaController::from_controller(
+            RecordingController::default(),
+            state,
+            WebViewAreaPolicy::default(),
+        )
+        .unwrap();
+
+        area.tick_with(state, || pumped.set(true)).unwrap();
+
+        assert!(pumped.get());
     }
 }

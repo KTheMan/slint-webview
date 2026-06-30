@@ -1,7 +1,9 @@
 use std::sync::mpsc;
 
 use raw_window_handle::HasWindowHandle;
-use slint_webview_core::{BackendWebViewController, WebViewBackend, validate_bounds};
+use slint_webview_core::{
+    BackendWebViewController, WebViewBackend, WebViewControllerLike, validate_bounds,
+};
 
 use crate::platform;
 use crate::{
@@ -144,5 +146,51 @@ impl WebViewBackend for platform::NativeWebView {
 
     fn focus_parent(&self) -> Result<()> {
         platform::NativeWebView::focus_parent(self)
+    }
+}
+
+impl WebViewControllerLike for WebViewController {
+    fn capabilities() -> WebViewCapabilities {
+        WebViewController::capabilities()
+    }
+
+    fn drain_events(&self) -> Vec<WebViewEvent> {
+        WebViewController::drain_events(self)
+    }
+
+    fn set_bounds(&self, bounds: WebViewBounds) -> Result<()> {
+        WebViewController::set_bounds(self, bounds)
+    }
+
+    fn set_visible(&self, visible: bool) -> Result<()> {
+        WebViewController::set_visible(self, visible)
+    }
+
+    fn load_source(&self, source: WebViewSource) -> Result<()> {
+        WebViewController::load_source(self, source)
+    }
+
+    fn load_html(&self, html: &str) -> Result<()> {
+        WebViewController::load_html(self, html)
+    }
+
+    fn load_url(&self, url: &str) -> Result<()> {
+        WebViewController::load_url(self, url)
+    }
+
+    fn evaluate_script(&self, script: &str) -> Result<ScriptRequestId> {
+        WebViewController::evaluate_script(self, script)
+    }
+
+    fn focus(&self) -> Result<()> {
+        WebViewController::focus(self)
+    }
+
+    fn set_keyboard_focus_enabled(&self, enabled: bool) -> Result<()> {
+        WebViewController::set_keyboard_focus_enabled(self, enabled)
+    }
+
+    fn focus_parent(&self) -> Result<()> {
+        WebViewController::focus_parent(self)
     }
 }

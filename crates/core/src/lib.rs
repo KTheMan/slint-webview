@@ -20,8 +20,8 @@ pub use api::{
     WebViewOptions, WebViewSource,
 };
 pub use area::{
-    DEFAULT_PARK_BOUNDS, HiddenWebViewStrategy, WebViewAreaPlacement, WebViewAreaPolicy,
-    WebViewAreaState, WebViewAreaStatus,
+    BackendWebViewAreaController, DEFAULT_PARK_BOUNDS, HiddenWebViewStrategy, WebViewAreaPlacement,
+    WebViewAreaPolicy, WebViewAreaState, WebViewAreaStatus, WebViewControllerLike,
 };
 pub use backend::{BackendWebViewController, WebViewBackend, validate_bounds};
 pub use capabilities::{CompositionTier, WebViewCapabilities};

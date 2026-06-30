@@ -11,6 +11,9 @@ The crate exposes a controller-oriented API:
   serializable policy/state types for widget-style composition.
 - `WebViewBackend` and `BackendWebViewController`: shared backend trait and
   backend-agnostic controller used by concrete backend crates.
+- `WebViewControllerLike` and `BackendWebViewAreaController`: shared
+  controller-facing trait and area controller used to keep Slint placeholder
+  policy consistent across backend families.
 - `WebViewOptions`: creation-time configuration.
 - `WebViewSource`: initial content selection.
 - `WebViewBounds`: Slint logical-pixel rectangle.
@@ -102,6 +105,10 @@ better.
 Backend crates implement `WebViewBackend` for their concrete engine surface.
 `BackendWebViewController` then supplies uniform event draining, script request
 ID allocation, source loading dispatch, and bounds validation.
+
+Backend crates should expose a controller implementing `WebViewControllerLike`
+and compose it with `BackendWebViewAreaController` for uniform hiding/parking,
+overlay, shell-focus, and focus-request behavior.
 
 Servo and CEF backends should report `CompositionTier::SlintOwnedTexture` once
 they render into buffers or textures owned by Slint. A Windows-only WebView2

@@ -44,6 +44,12 @@ or WKWebView types through the shared API.
 operations in `WebViewBackend`; the shared controller owns source dispatch,
 script request IDs, event draining, and bounds validation.
 
+`slint-webview-core` also provides `WebViewControllerLike` plus
+`BackendWebViewAreaController<C>`. Backend crates should implement or expose a
+controller that satisfies `WebViewControllerLike`, then reuse the shared area
+controller for Slint placeholder synchronization, overlay hiding/parking,
+shell-focus release, and focus-request event policy.
+
 ## Composition Families
 
 ### Native
@@ -117,15 +123,15 @@ observable behavior.
 
 1. Keep the current crate unpublished as `slint-webview` until the owner
    decides release policy.
-2. Keep shared API, event, fixture, capability, error, and area-policy types in
-   `slint-webview-core`.
+2. Keep shared API, event, fixture, capability, error, low-level controller, and
+   area-controller behavior in `slint-webview-core`.
 3. Move Wry code into `slint-webview-native` and make the facade depend on it
    by default.
 4. Add `slint-webview-servo` behind an opt-in feature or separate example app.
 5. Add `slint-webview-cef` after Servo or in parallel if Chromium compatibility
    is the priority.
 6. Promote backend-agnostic examples and tests so all three backend crates run
-   the same contract.
+   the same low-level controller and area-controller contracts.
 
 ## Decision Guidance
 

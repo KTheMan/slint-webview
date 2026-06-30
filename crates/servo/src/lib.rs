@@ -8,7 +8,8 @@
 
 pub use slint_webview_core as core;
 pub use slint_webview_core::{
-    BackendWebViewController, CompositionTier, WebViewBackend, WebViewCapabilities,
+    BackendWebViewAreaController, BackendWebViewController, CompositionTier, WebViewBackend,
+    WebViewCapabilities, WebViewControllerLike,
 };
 
 /// Returns the planned Servo backend capabilities.

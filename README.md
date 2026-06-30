@@ -18,6 +18,8 @@ workspace are non-authoritative unless a maintainer explicitly points to them.
   `slint-webview` facade/native crate.
 - A shared `WebViewBackend` trait and `BackendWebViewController` for backend
   implementations.
+- A shared `WebViewControllerLike` trait and `BackendWebViewAreaController` so
+  native, Servo, and CEF backends can reuse the same area sync/focus policy.
 - A Rust library API centered on `WebViewController`.
 - A Tier 1.5 `WebViewArea`/`WebViewAreaController` composition layer for Slint
   apps that want reusable parking, overlay, and focus policy.
@@ -121,7 +123,8 @@ See [examples/area.rs](examples/area.rs) and
 The repository now has a shared core plus backend crate shells:
 
 - `slint-webview-core` for API types, events, policy, fixtures, and Slint
-  component assets.
+  component assets, including the backend-agnostic low-level and area
+  controllers.
 - `slint-webview-native` for Wry-backed WebView2, WKWebView, and WebKitGTK.
 - `slint-webview-servo` for Servo-backed Slint texture composition.
 - `slint-webview-cef` for CEF windowless/offscreen Chromium composition.
@@ -129,8 +132,9 @@ The repository now has a shared core plus backend crate shells:
 
 Native remains the smallest platform-integrated path. Servo and CEF are the
 consistency paths because they can target Slint-owned texture/offscreen
-composition. The Wry implementation still lives in the facade crate until it is
-mechanically moved into `slint-webview-native`. See
+composition. The root native `WebViewAreaController` already delegates policy
+to the shared core area controller; the Wry implementation still lives in the
+facade crate until it is mechanically moved into `slint-webview-native`. See
 [docs/backend-crate-strategy.md](docs/backend-crate-strategy.md).
 
 ## Installation

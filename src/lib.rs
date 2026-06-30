@@ -20,9 +20,9 @@ pub use controller::{WebViewController, initialize_platform, pump_platform_event
 #[cfg(feature = "testing")]
 pub use slint_webview_core::fixture;
 pub use slint_webview_core::{
-    BackendWebViewController, CompositionTier, DEFAULT_PARK_BOUNDS, HiddenWebViewStrategy,
-    NavigationDecision, NavigationPolicy, Result, ScriptRequestId, WebViewAreaPlacement,
-    WebViewAreaPolicy, WebViewAreaState, WebViewAreaStatus, WebViewBackend, WebViewBounds,
-    WebViewCapabilities, WebViewError, WebViewEvent, WebViewOptions, WebViewSource,
-    validate_bounds,
+    BackendWebViewAreaController, BackendWebViewController, CompositionTier, DEFAULT_PARK_BOUNDS,
+    HiddenWebViewStrategy, NavigationDecision, NavigationPolicy, Result, ScriptRequestId,
+    WebViewAreaPlacement, WebViewAreaPolicy, WebViewAreaState, WebViewAreaStatus, WebViewBackend,
+    WebViewBounds, WebViewCapabilities, WebViewControllerLike, WebViewError, WebViewEvent,
+    WebViewOptions, WebViewSource, validate_bounds,
 };
