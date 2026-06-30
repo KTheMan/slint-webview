@@ -1,0 +1,69 @@
+// Copyright (C) 2026
+//
+// Slint-side composition surface for rendered webview backends. Real rendered
+// backends own the pixels; this component owns the surrounding scene-graph
+// layout, clipping, overlay, and input hooks.
+
+export component RenderedWebViewArea inherits Rectangle {
+    in property <string> frame-label: "no frame";
+    in property <string> status-text: "";
+    in property <bool> focused: false;
+
+    callback focus-requested();
+    callback pointer-pressed();
+
+    min-width: 160px;
+    min-height: 120px;
+    clip: true;
+    background: #102536;
+    border-width: 1px;
+    border-color: root.focused ? #28c4b8 : #7f9cad;
+
+    TouchArea {
+        clicked => {
+            root.focus-requested();
+            root.pointer-pressed();
+        }
+    }
+
+    Rectangle {
+        x: 16px;
+        y: 16px;
+        width: root.width - 32px;
+        height: root.height - 32px;
+        background: root.focused ? #17384a : #142d3d;
+        border-width: 1px;
+        border-color: #315a70;
+    }
+
+    Text {
+        x: 32px;
+        y: 32px;
+        width: root.width - 64px;
+        text: "rendered webview fixture";
+        color: #f5f8fa;
+        font-size: 22px;
+        font-weight: 700;
+        overflow: elide;
+    }
+
+    Text {
+        x: 32px;
+        y: 72px;
+        width: root.width - 64px;
+        text: root.frame-label;
+        color: #cde8f4;
+        font-size: 14px;
+        overflow: elide;
+    }
+
+    Text {
+        x: 32px;
+        y: root.height - 56px;
+        width: root.width - 64px;
+        text: root.status-text;
+        color: #9fb6c4;
+        font-size: 13px;
+        overflow: elide;
+    }
+}

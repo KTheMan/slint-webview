@@ -1,8 +1,8 @@
 # Architecture
 
 `slint-webview` is a workspace with a shared core crate, a root facade crate, a
-native backend crate, and backend crate shells for Servo and CEF
-implementations.
+native backend crate, a mock rendered backend crate, and backend crate shells
+for Servo and CEF implementations.
 
 ## Layers
 
@@ -22,8 +22,11 @@ implementations.
   to backend bounds, visibility, parking, and focus policy.
 - Native backend: `slint-webview-native` translates shared backend operations
   to Wry calls.
-- Slint component: `ui/webview-area.slint` provides the declarative placeholder
-  and callbacks used by applications.
+- Mock rendered backend: `slint-webview-mock` translates shared rendered
+  backend operations into deterministic CPU frames and event records.
+- Slint components: `ui/webview-area.slint` and
+  `ui/rendered-webview-area.slint` provide declarative placeholder surfaces and
+  callbacks used by applications.
 - Regression app: Slint UI plus native webview, compiled only with
   `--features testing`.
 
@@ -35,6 +38,8 @@ The workspace shape is:
   controller, area controller, rendered-backend controller/contracts, fixtures,
   docs, and Slint component assets.
 - `slint-webview-native`: Wry-backed native platform webview backend.
+- `slint-webview-mock`: deterministic rendered backend for Slint composition
+  tests and examples.
 - `slint-webview-servo`: shell for Servo rendered into Slint-owned textures.
 - `slint-webview-cef`: shell for CEF windowless/offscreen Chromium rendered
   into Slint-owned textures.

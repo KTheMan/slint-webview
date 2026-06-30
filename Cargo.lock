@@ -4467,8 +4467,11 @@ dependencies = [
  "raw-window-handle",
  "serde_json",
  "slint",
+ "slint-webview-cef",
  "slint-webview-core",
+ "slint-webview-mock",
  "slint-webview-native",
+ "slint-webview-servo",
 ]
 
 [[package]]
@@ -4484,6 +4487,13 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "slint-webview-mock"
+version = "0.1.0"
+dependencies = [
+ "slint-webview-core",
 ]
 
 [[package]]

@@ -13,13 +13,15 @@ Package split:
 | --- | --- | --- |
 | `slint-webview-core` | Shared API, policy, events, test fixtures, Slint component assets, backend traits | No backend |
 | `slint-webview-native` | Wry-backed OS webviews: WebView2, WKWebView, WebKitGTK | `NativeChildView`, with optional platform visual hosting |
+| `slint-webview-mock` | Deterministic rendered backend for tests and examples | `SlintOwnedTexture`, CPU pixels |
 | `slint-webview-servo` | Servo-backed renderer integrated through Slint texture/compositor paths | `SlintOwnedTexture` |
 | `slint-webview-cef` | CEF windowless/offscreen Chromium backend | `SlintOwnedTexture`, with platform-specific accelerated paths |
 | `slint-webview` | Convenience facade crate selecting one backend with features | Depends on core plus one backend |
 
 The workspace now contains `slint-webview-core`, a concrete
-`slint-webview-native` implementation, and shell crates for Servo and CEF. The
-root `slint-webview` facade depends on the native crate by default.
+`slint-webview-native` implementation, a concrete `slint-webview-mock`
+rendered backend, and shell crates for Servo and CEF. The root
+`slint-webview` facade depends on the native crate by default.
 
 ## Backend Contract
 
@@ -57,6 +59,16 @@ shared rendered controller so their final engine adapters differ only where
 frame production, texture sharing, and engine input translation require it.
 
 ## Composition Families
+
+### Mock Rendered
+
+`slint-webview-mock` is not a browser engine. It exists so tests and examples
+can exercise the rendered controller, Slint-side composition surface, input
+routing, event draining, and CPU frame validation before CEF or Servo is
+implemented.
+
+This family should stay deterministic, tiny, and browser-free. It should not
+grow network, JavaScript, layout, or storage behavior.
 
 ### Native
 
@@ -139,10 +151,11 @@ observable behavior.
    it by default.
 4. Keep rendered frame/input/controller contracts in `slint-webview-core` so
    Servo and CEF share Slint-owned composition semantics.
-5. Add `slint-webview-servo` behind an opt-in feature or separate example app.
-6. Add `slint-webview-cef` after Servo or in parallel if Chromium compatibility
-   is the priority.
-7. Promote backend-agnostic examples and tests so all three backend crates run
+5. Use `slint-webview-mock` as the first rendered backend in examples and CI.
+6. Add `slint-webview-cef` first if Chromium compatibility is the priority.
+7. Add `slint-webview-servo` first if Rust-native architecture and deep Slint
+   integration are the priority.
+8. Promote backend-agnostic examples and tests so all backend crates run
    the same low-level controller and area-controller contracts.
 
 ## Decision Guidance

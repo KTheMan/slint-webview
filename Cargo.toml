@@ -3,6 +3,7 @@ members = [
     ".",
     "crates/core",
     "crates/native",
+    "crates/mock",
     "crates/servo",
     "crates/cef",
 ]
@@ -33,6 +34,7 @@ include = [
     "COPYING.LESSER",
     "crates/core/**",
     "crates/native/**",
+    "crates/mock/**",
     "crates/servo/**",
     "crates/cef/**",
     "src/**",
@@ -46,8 +48,11 @@ include = [
 publish = false
 
 [features]
-default = ["backend-wry"]
+default = ["backend-native"]
+backend-native = ["backend-wry"]
 backend-wry = ["slint-webview-native/backend-wry"]
+backend-servo = ["dep:slint-webview-servo"]
+backend-cef = ["dep:slint-webview-cef"]
 testing = ["slint-webview-core/testing"]
 
 [dependencies]
@@ -55,7 +60,12 @@ raw-window-handle = "0.6"
 serde_json = "1"
 slint-webview-core = { path = "crates/core", version = "0.1.0" }
 slint-webview-native = { path = "crates/native", version = "0.1.0", default-features = false }
+slint-webview-servo = { path = "crates/servo", version = "0.1.0", optional = true }
+slint-webview-cef = { path = "crates/cef", version = "0.1.0", optional = true }
 slint = { version = "=1.14.1", features = ["raw-window-handle-06"] }
+
+[dev-dependencies]
+slint-webview-mock = { path = "crates/mock", version = "0.1.0" }
 
 [[bin]]
 name = "slint-webview-regression"

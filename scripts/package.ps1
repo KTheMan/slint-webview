@@ -23,4 +23,5 @@ Invoke-Checked "cargo" @("test", "--workspace")
 Invoke-Checked "cargo" @("doc", "--workspace", "--all-features", "--no-deps")
 Invoke-Checked "cargo" @("package", "-p", "slint-webview-core", "--allow-dirty")
 Invoke-Checked "cargo" @("package", "-p", "slint-webview-core", "--allow-dirty", "--list")
-Write-Host "Facade crate package dry-run is blocked until path dependencies such as slint-webview-core and slint-webview-native are published or vendored as part of a release."
+Invoke-Checked "cargo" @("package", "-p", "slint-webview-mock", "--allow-dirty", "--list")
+Write-Host "Facade and mock crate package dry-runs are blocked until path dependencies such as slint-webview-core and slint-webview-native are published or vendored as part of a release."

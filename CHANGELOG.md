@@ -41,6 +41,16 @@ Initial release candidate for native webview composition in Slint apps.
   validation, and shared frame, frame transport, rendered surface size,
   dirty-rectangle, and input-event types for future Servo and CEF Slint-owned
   composition.
+- `slint-webview-mock`, a deterministic rendered backend for exercising the
+  shared rendered controller, Slint-side composition fixture, input events, and
+  CPU frame draining without native webviews or a full browser engine.
+- `examples/rendered_mock.rs` plus `ui/rendered-webview-area.slint` for a
+  backend-agnostic rendered composition smoke app.
+- `backend-native`, `backend-servo`, and `backend-cef` facade features, with
+  `backend-wry` retained as the native implementation feature.
+- Rendered backend roadmap documentation covering the CEF subprocess/package
+  layout, CEF CPU paint-buffer MVP, Servo event loop, and Servo pixel/texture
+  output MVP.
 - Wry implementation moved into `slint-webview-native`, with the root
   `slint-webview` crate acting as a facade over the native backend.
 

@@ -16,6 +16,8 @@ mod controller;
 
 pub use area::WebViewAreaController;
 pub use controller::{WebViewController, initialize_platform, pump_platform_events};
+#[cfg(feature = "backend-cef")]
+pub use slint_webview_cef as cef;
 #[cfg(feature = "testing")]
 pub use slint_webview_core::fixture;
 pub use slint_webview_core::{
@@ -31,3 +33,6 @@ pub use slint_webview_core::{
     WebViewEvent, WebViewOptions, WebViewSource, validate_bounds, validate_rendered_frame,
     validate_rendered_size,
 };
+pub use slint_webview_native as native;
+#[cfg(feature = "backend-servo")]
+pub use slint_webview_servo as servo;

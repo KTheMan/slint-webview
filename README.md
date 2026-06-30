@@ -23,12 +23,15 @@ workspace are non-authoritative unless a maintainer explicitly points to them.
 - A shared `RenderedWebViewBackend` contract and
   `BackendRenderedWebViewController` for future Servo/CEF Slint-owned frame
   output and input routing.
+- A deterministic `slint-webview-mock` rendered backend for composition tests
+  and examples without native webviews or a full browser engine.
 - A Rust library API centered on `WebViewController`.
 - A Tier 1.5 `WebViewArea`/`WebViewAreaController` composition layer for Slint
   apps that want reusable parking, overlay, and focus policy.
 - A Wry-backed native child-view implementation.
 - A real `slint-webview-native` backend crate plus compileable
-  `slint-webview-servo` and `slint-webview-cef` backend shells.
+  `slint-webview-mock`, `slint-webview-servo`, and `slint-webview-cef`
+  backend crates.
 - Conservative defaults: blank page, JavaScript off, devtools off, clipboard
   off, downloads off, popups off, initial webview focus off.
 - Structured events for navigation, IPC, title changes, script results, popups,
@@ -129,6 +132,8 @@ The repository now has a shared core plus backend crates:
   component assets, including the backend-agnostic low-level and area
   controllers plus rendered frame/input/controller contracts.
 - `slint-webview-native` for Wry-backed WebView2, WKWebView, and WebKitGTK.
+- `slint-webview-mock` for deterministic Slint-owned rendered composition
+  tests and examples.
 - `slint-webview-servo` for Servo-backed Slint texture composition.
 - `slint-webview-cef` for CEF windowless/offscreen Chromium composition.
 - `slint-webview` as a convenience facade.
@@ -139,9 +144,12 @@ composition. The root facade delegates native backend work to
 `slint-webview-native` and shared controller policy to `slint-webview-core`. See
 [docs/backend-crate-strategy.md](docs/backend-crate-strategy.md).
 
-Servo advertises a planned rendered backend that prefers external texture
-frames with CPU pixels as a fallback. CEF advertises a planned rendered backend
-that starts with CPU paint buffers and can add accelerated texture paths later.
+The mock backend is the first implemented rendered backend and proves the
+controller, frame, and input contract end to end. Servo advertises a planned
+rendered backend that prefers external texture frames with CPU pixels as a
+fallback. CEF advertises a planned rendered backend that starts with CPU paint
+buffers and can add accelerated texture paths later. See
+[docs/rendered-backend-roadmap.md](docs/rendered-backend-roadmap.md).
 
 ## Installation
 
@@ -168,11 +176,14 @@ slint-webview = { git = "https://github.com/KTheMan/slint-webview", default-feat
 
 | Feature | Default | Purpose |
 | --- | --- | --- |
-| `backend-wry` | yes | Enables the native Wry backend |
+| `backend-native` | yes | Selects the native backend family |
+| `backend-wry` | yes | Enables the Wry implementation used by `backend-native` |
+| `backend-servo` | no | Exposes the Servo rendered backend crate shell |
+| `backend-cef` | no | Exposes the CEF rendered backend crate shell |
 | `testing` | no | Enables fixture helpers and the regression app |
 
-`backend-wry` pulls in platform webview dependencies through
-`slint-webview-native`.
+`backend-native` currently maps to `backend-wry`. `backend-wry` pulls in
+platform webview dependencies through `slint-webview-native`.
 On Linux, GTK/WebKitGTK development packages are required only when this feature
 is enabled.
 
@@ -232,6 +243,12 @@ $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS="--remote-debugging-port=9222"
 cargo run --features testing --bin slint-webview-regression -- --smoke
 ```
 
+Rendered mock composition:
+
+```powershell
+cargo run --example rendered_mock
+```
+
 ## Documentation
 
 - [Product requirements](docs/prd.md)
@@ -239,6 +256,7 @@ cargo run --features testing --bin slint-webview-regression -- --smoke
 - [Architecture](docs/architecture.md)
 - [API notes](docs/api.md)
 - [Backend crate strategy](docs/backend-crate-strategy.md)
+- [Rendered backend roadmap](docs/rendered-backend-roadmap.md)
 - [Security model](docs/security.md)
 - [Testing strategy](docs/testing.md)
 - [WebViewArea composition](docs/webview-area.md)

@@ -63,6 +63,22 @@ Run it manually when validating the reusable area wrapper:
 cargo run --example area
 ```
 
+## Rendered Mock Example
+
+The rendered mock example exercises the Slint-side composition surface, shared
+rendered controller, deterministic CPU frame production, event draining, and
+input routing without depending on Wry, CEF, Servo, or platform webview
+runtimes:
+
+```powershell
+cargo run --example rendered_mock
+```
+
+This is the baseline regression shape for future CEF and Servo rendered
+backends: once those backends exist, they should pass the same controller,
+frame, input, focus, and Slint-shell coexistence expectations with only the
+engine adapter swapped.
+
 ## Package Validation
 
 Run before cutting a release candidate:
