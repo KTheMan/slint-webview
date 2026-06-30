@@ -16,6 +16,8 @@ workspace are non-authoritative unless a maintainer explicitly points to them.
 
 - A Rust workspace with shared `slint-webview-core` types and a root
   `slint-webview` facade/native crate.
+- A shared `WebViewBackend` trait and `BackendWebViewController` for backend
+  implementations.
 - A Rust library API centered on `WebViewController`.
 - A Tier 1.5 `WebViewArea`/`WebViewAreaController` composition layer for Slint
   apps that want reusable parking, overlay, and focus policy.

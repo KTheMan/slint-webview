@@ -12,9 +12,9 @@ cargo test --workspace
 ```
 
 These verify serializable API types, conservative defaults, navigation policy,
-`WebViewAreaPolicy` placement behavior, and pure Rust behavior. The
-no-default-features path proves the public API can compile without a native
-backend.
+`WebViewAreaPolicy` placement behavior, `WebViewBackend` controller behavior,
+and pure Rust behavior. The no-default-features path proves the public API can
+compile without a native backend.
 
 ## Static Gates
 

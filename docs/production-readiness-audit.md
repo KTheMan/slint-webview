@@ -37,6 +37,7 @@ The most important hardening work is complete:
   `slint-webview-core`.
 - The manifest has an explicit package `include` list.
 - Shared API and area-policy types now live in `slint-webview-core`.
+- Shared backend-controller behavior now lives in `BackendWebViewController`.
 - Native, Servo, and CEF backend crate shells compile against the shared core.
 - Linux native backend dependencies are optional behind `backend-wry`, so
   `--no-default-features` remains a pure API build.
@@ -153,6 +154,7 @@ Current regression coverage proves:
 - Pure API behavior with and without the default backend.
 - Pure `WebViewAreaPolicy` placement behavior with and without the default
   backend.
+- Pure `WebViewBackend` shared controller behavior.
 - Workspace compilation for core plus native, Servo, and CEF shells.
 - Formatting, clippy, and rustdoc gates.
 - `examples/area.rs` compilation through all-target checks.

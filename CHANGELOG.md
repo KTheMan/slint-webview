@@ -32,6 +32,8 @@ Initial release candidate for native webview composition in Slint apps.
   testing, licensing, and platform notes.
 - `slint-webview-core` shared crate plus compileable `native`, `servo`, and
   `cef` backend crate shells.
+- `WebViewBackend` and `BackendWebViewController` shared backend contract for
+  native, Servo, and CEF implementations.
 
 ### Known Limitations
 

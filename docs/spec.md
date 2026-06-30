@@ -9,6 +9,8 @@ The crate exposes a controller-oriented API:
   synchronization, parking, overlay, and focus policy.
 - `WebViewAreaPolicy`, `WebViewAreaState`, and `WebViewAreaPlacement`:
   serializable policy/state types for widget-style composition.
+- `WebViewBackend` and `BackendWebViewController`: shared backend trait and
+  backend-agnostic controller used by concrete backend crates.
 - `WebViewOptions`: creation-time configuration.
 - `WebViewSource`: initial content selection.
 - `WebViewBounds`: Slint logical-pixel rectangle.
@@ -96,6 +98,10 @@ needs to appear above it.
 `WebViewAreaPolicy::default()` uses offscreen parking for hidden webviews. Apps
 may opt into native hide or hide-and-park if that fits their platform behavior
 better.
+
+Backend crates implement `WebViewBackend` for their concrete engine surface.
+`BackendWebViewController` then supplies uniform event draining, script request
+ID allocation, source loading dispatch, and bounds validation.
 
 Servo and CEF backends should report `CompositionTier::SlintOwnedTexture` once
 they render into buffers or textures owned by Slint. A Windows-only WebView2

@@ -39,6 +39,11 @@ All backend crates should implement the same host-facing behavior:
 The backend boundary should avoid exposing Wry, Servo, CEF, WebView2, WebKitGTK,
 or WKWebView types through the shared API.
 
+`slint-webview-core` now provides `WebViewBackend` plus
+`BackendWebViewController<B>`. Backend crates should implement only engine
+operations in `WebViewBackend`; the shared controller owns source dispatch,
+script request IDs, event draining, and bounds validation.
+
 ## Composition Families
 
 ### Native
@@ -114,14 +119,12 @@ observable behavior.
    decides release policy.
 2. Keep shared API, event, fixture, capability, error, and area-policy types in
    `slint-webview-core`.
-3. Introduce an internal backend trait behind the existing controller without
-   changing public API.
-4. Move Wry code into `slint-webview-native` and make the facade depend on it
+3. Move Wry code into `slint-webview-native` and make the facade depend on it
    by default.
-5. Add `slint-webview-servo` behind an opt-in feature or separate example app.
-6. Add `slint-webview-cef` after Servo or in parallel if Chromium compatibility
+4. Add `slint-webview-servo` behind an opt-in feature or separate example app.
+5. Add `slint-webview-cef` after Servo or in parallel if Chromium compatibility
    is the priority.
-7. Promote backend-agnostic examples and tests so all three backend crates run
+6. Promote backend-agnostic examples and tests so all three backend crates run
    the same contract.
 
 ## Decision Guidance

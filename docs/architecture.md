@@ -5,11 +5,13 @@ crate, and backend crate shells for native, Servo, and CEF implementations.
 
 ## Layers
 
-- Core API: option types, events, capabilities, errors, fixtures, and area
-  policy live in `slint-webview-core`.
+- Core API: option types, events, capabilities, errors, fixtures, area policy,
+  `WebViewBackend`, and `BackendWebViewController` live in
+  `slint-webview-core`.
 - Facade API: the root `slint-webview` crate re-exports core types and provides
   `WebViewController` plus the Tier 1.5 `WebViewAreaController` wrapper.
-- Controller: owns the backend instance, event receiver, and script request ID
+- Controller: the shared core controller owns the backend instance, event
+  receiver, source dispatch, bounds validation, and script request ID
   allocation.
 - Area controller: maps Slint placeholder state to native bounds, visibility,
   parking, and focus policy.
@@ -33,9 +35,9 @@ The workspace shape is:
 - `slint-webview`: facade crate that currently owns the Wry backend and will
   later pick a backend through features.
 
-The current crate should not expose backend types, because the same
-`WebViewController` and `WebViewAreaController` contract should be usable by all
-future backend crates.
+The current crate should not expose concrete backend types, because the same
+core backend trait and facade-level `WebViewController` /
+`WebViewAreaController` contract should be usable by all future backend crates.
 
 ## Why Controller First
 

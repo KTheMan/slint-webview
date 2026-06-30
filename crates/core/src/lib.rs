@@ -9,6 +9,7 @@
 
 mod api;
 mod area;
+mod backend;
 mod capabilities;
 mod error;
 #[cfg(any(test, feature = "testing"))]
@@ -22,5 +23,6 @@ pub use area::{
     DEFAULT_PARK_BOUNDS, HiddenWebViewStrategy, WebViewAreaPlacement, WebViewAreaPolicy,
     WebViewAreaState, WebViewAreaStatus,
 };
+pub use backend::{BackendWebViewController, WebViewBackend, validate_bounds};
 pub use capabilities::{CompositionTier, WebViewCapabilities};
 pub use error::{Result, WebViewError};

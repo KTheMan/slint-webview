@@ -93,3 +93,19 @@ overlay-covered webviews move to `DEFAULT_PARK_BOUNDS` while remaining natively
 visible, which is often faster and less visually stale than the native hide path
 on WSLg/WebKitGTK. Apps can choose `Hide` or `HideAndPark` when a platform or
 product policy needs a different behavior.
+
+## `WebViewBackend`
+
+`slint-webview-core` exposes `WebViewBackend` and
+`BackendWebViewController<B>`. Backend crates implement `WebViewBackend` for
+their concrete engine surface, then use the shared controller for:
+
+- Event draining.
+- Script request ID allocation.
+- `WebViewSource` dispatch to blank, URL, or inline HTML.
+- Bounds validation before backend updates.
+- Shared focus, visibility, and script method shape.
+
+The root native facade already routes its Wry-backed native webview through
+`BackendWebViewController<NativeWebView>`. Servo and CEF backends should use the
+same shared controller once their concrete engine instances exist.

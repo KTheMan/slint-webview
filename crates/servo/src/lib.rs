@@ -7,7 +7,9 @@
 #![warn(missing_docs)]
 
 pub use slint_webview_core as core;
-pub use slint_webview_core::{CompositionTier, WebViewCapabilities};
+pub use slint_webview_core::{
+    BackendWebViewController, CompositionTier, WebViewBackend, WebViewCapabilities,
+};
 
 /// Returns the planned Servo backend capabilities.
 pub const fn planned_capabilities() -> WebViewCapabilities {
