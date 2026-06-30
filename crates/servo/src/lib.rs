@@ -8,13 +8,13 @@
 
 pub use slint_webview_core as core;
 pub use slint_webview_core::{
-    BackendWebViewAreaController, BackendWebViewController, CompositionTier,
-    RenderedWebViewBackend, RenderedWebViewCapabilities, RenderedWebViewDirtyRect,
+    BackendRenderedWebViewController, BackendWebViewAreaController, BackendWebViewController,
+    CompositionTier, RenderedWebViewBackend, RenderedWebViewCapabilities, RenderedWebViewDirtyRect,
     RenderedWebViewFrame, RenderedWebViewFrameId, RenderedWebViewFramePayload,
     RenderedWebViewFrameTransport, RenderedWebViewInputEvent, RenderedWebViewInputState,
     RenderedWebViewModifiers, RenderedWebViewPixelFormat, RenderedWebViewPointerButton,
     RenderedWebViewSize, RenderedWebViewTextureApi, WebViewBackend, WebViewCapabilities,
-    WebViewControllerLike,
+    WebViewControllerLike, validate_rendered_frame, validate_rendered_size,
 };
 
 /// Returns the planned Servo backend capabilities.

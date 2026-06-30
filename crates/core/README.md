@@ -15,6 +15,6 @@ Backend crates can also implement `WebViewControllerLike` for their public
 controller type and reuse `BackendWebViewAreaController` for Slint placeholder
 sync, hiding/parking policy, and focus-event handling.
 
-Servo and CEF style backends can implement `RenderedWebViewBackend` and use the
-shared rendered frame/input types for Slint-owned texture or paint-buffer
-composition.
+Servo and CEF style backends can implement `RenderedWebViewBackend` and use
+`BackendRenderedWebViewController` with the shared rendered frame/input types
+for Slint-owned texture or paint-buffer composition.

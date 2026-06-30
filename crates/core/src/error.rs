@@ -1,4 +1,4 @@
-use crate::WebViewBounds;
+use crate::{RenderedWebViewSize, WebViewBounds};
 
 /// Error returned by webview operations.
 #[derive(Debug, thiserror::Error)]
@@ -12,6 +12,12 @@ pub enum WebViewError {
     /// Bounds are invalid.
     #[error("webview bounds are invalid: {0:?}")]
     InvalidBounds(WebViewBounds),
+    /// Render surface size is invalid.
+    #[error("rendered webview surface size is invalid: {0:?}")]
+    InvalidRenderedSize(RenderedWebViewSize),
+    /// Rendered frame data is invalid.
+    #[error("rendered webview frame is invalid: {0}")]
+    InvalidRenderedFrame(String),
     /// Navigation was blocked by policy.
     #[error("navigation was blocked by policy: {0}")]
     NavigationBlocked(String),

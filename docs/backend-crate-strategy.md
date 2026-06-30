@@ -50,10 +50,11 @@ controller for Slint placeholder synchronization, overlay hiding/parking,
 shell-focus release, and focus-request event policy.
 
 For Slint-owned composition, `slint-webview-core` provides
-`RenderedWebViewBackend` plus shared rendered-frame and input-event types. Servo
-and CEF implementations should implement this rendered contract in addition to
-`WebViewBackend`, so their final engine adapters differ only where frame
-production, texture sharing, and engine input translation require it.
+`RenderedWebViewBackend`, `BackendRenderedWebViewController`, and shared
+rendered-frame and input-event types. Servo and CEF implementations should
+implement this rendered contract in addition to `WebViewBackend`, then use the
+shared rendered controller so their final engine adapters differ only where
+frame production, texture sharing, and engine input translation require it.
 
 ## Composition Families
 
@@ -136,8 +137,8 @@ observable behavior.
    area-controller behavior in `slint-webview-core`.
 3. Keep the Wry code in `slint-webview-native` and keep the facade depending on
    it by default.
-4. Keep rendered frame/input contracts in `slint-webview-core` so Servo and CEF
-   share Slint-owned composition semantics.
+4. Keep rendered frame/input/controller contracts in `slint-webview-core` so
+   Servo and CEF share Slint-owned composition semantics.
 5. Add `slint-webview-servo` behind an opt-in feature or separate example app.
 6. Add `slint-webview-cef` after Servo or in parallel if Chromium compatibility
    is the priority.

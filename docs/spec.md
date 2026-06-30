@@ -14,9 +14,9 @@ The crate exposes a controller-oriented API:
 - `WebViewControllerLike` and `BackendWebViewAreaController`: shared
   controller-facing trait and area controller used to keep Slint placeholder
   policy consistent across backend families.
-- `RenderedWebViewBackend`, `RenderedWebViewFrame`, and
-  `RenderedWebViewInputEvent`: shared rendered-backend contract for Servo and
-  CEF style Slint-owned composition.
+- `RenderedWebViewBackend`, `BackendRenderedWebViewController`,
+  `RenderedWebViewFrame`, and `RenderedWebViewInputEvent`: shared rendered
+  backend contract for Servo and CEF style Slint-owned composition.
 - `WebViewOptions`: creation-time configuration.
 - `WebViewSource`: initial content selection.
 - `WebViewBounds`: Slint logical-pixel rectangle.
@@ -117,8 +117,10 @@ overlay, shell-focus, and focus-request behavior.
 Servo and CEF backends should report `CompositionTier::SlintOwnedTexture` once
 they render into buffers or textures owned by Slint. They should implement
 `RenderedWebViewBackend` for surface resizing, Slint-originated input events,
-and frame production. A Windows-only WebView2 Visual Hosting backend should
-report `CompositionTier::PlatformVisualHosting`.
+and frame production, then wrap the engine instance in
+`BackendRenderedWebViewController` for shared browser dispatch and rendered
+frame validation. A Windows-only WebView2 Visual Hosting backend should report
+`CompositionTier::PlatformVisualHosting`.
 
 ## Feature Flags
 

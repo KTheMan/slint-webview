@@ -1,6 +1,11 @@
+use std::sync::mpsc::Receiver;
+
 use serde::{Deserialize, Serialize};
 
-use crate::Result;
+use crate::{
+    BackendWebViewController, Result, ScriptRequestId, WebViewBackend, WebViewBounds,
+    WebViewCapabilities, WebViewError, WebViewEvent, WebViewSource,
+};
 
 /// Pixel transport used by a Slint-owned rendered backend.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -362,11 +367,199 @@ pub trait RenderedWebViewBackend {
     fn next_frame(&self) -> Option<RenderedWebViewFrame>;
 }
 
+/// Shared controller for a concrete Slint-owned rendered webview backend.
+///
+/// This controller combines the normal backend controller with rendered-surface
+/// validation, rendered input dispatch, and frame retrieval. Servo and CEF
+/// backend crates can use this type once they have concrete engine instances
+/// implementing both [`WebViewBackend`] and [`RenderedWebViewBackend`].
+pub struct BackendRenderedWebViewController<B> {
+    controller: BackendWebViewController<B>,
+}
+
+impl<B> BackendRenderedWebViewController<B>
+where
+    B: WebViewBackend + RenderedWebViewBackend,
+{
+    /// Creates a rendered controller from a backend instance and its event
+    /// receiver.
+    pub fn new(backend: B, events: Receiver<WebViewEvent>) -> Self {
+        Self {
+            controller: BackendWebViewController::new(backend, events),
+        }
+    }
+
+    /// Returns the standard webview capabilities of the selected backend.
+    pub fn capabilities() -> WebViewCapabilities {
+        BackendWebViewController::<B>::capabilities()
+    }
+
+    /// Returns the rendered capabilities of the selected backend.
+    pub fn rendered_capabilities() -> RenderedWebViewCapabilities {
+        B::rendered_capabilities()
+    }
+
+    /// Returns the shared low-level controller.
+    pub fn controller(&self) -> &BackendWebViewController<B> {
+        &self.controller
+    }
+
+    /// Returns the underlying backend instance.
+    pub fn backend(&self) -> &B {
+        self.controller.backend()
+    }
+
+    /// Attempts to receive one pending webview event.
+    pub fn try_recv_event(&self) -> Option<WebViewEvent> {
+        self.controller.try_recv_event()
+    }
+
+    /// Drains all pending webview events.
+    pub fn drain_events(&self) -> Vec<WebViewEvent> {
+        self.controller.drain_events()
+    }
+
+    /// Updates logical webview bounds through the shared backend controller.
+    pub fn set_bounds(&self, bounds: WebViewBounds) -> Result<()> {
+        self.controller.set_bounds(bounds)
+    }
+
+    /// Shows or hides the backend surface.
+    pub fn set_visible(&self, visible: bool) -> Result<()> {
+        self.controller.set_visible(visible)
+    }
+
+    /// Loads a source into the rendered backend.
+    pub fn load_source(&self, source: WebViewSource) -> Result<()> {
+        self.controller.load_source(source)
+    }
+
+    /// Loads an HTML string into the rendered backend.
+    pub fn load_html(&self, html: &str) -> Result<()> {
+        self.controller.load_html(html)
+    }
+
+    /// Loads a URL into the rendered backend.
+    pub fn load_url(&self, url: &str) -> Result<()> {
+        self.controller.load_url(url)
+    }
+
+    /// Evaluates JavaScript and returns the request ID for the matching result.
+    pub fn evaluate_script(&self, script: &str) -> Result<ScriptRequestId> {
+        self.controller.evaluate_script(script)
+    }
+
+    /// Requests focus for the rendered backend.
+    pub fn focus(&self) -> Result<()> {
+        self.controller.focus()
+    }
+
+    /// Enables or disables whether the rendered backend may take keyboard focus.
+    pub fn set_keyboard_focus_enabled(&self, enabled: bool) -> Result<()> {
+        self.controller.set_keyboard_focus_enabled(enabled)
+    }
+
+    /// Returns focus to the host shell where supported.
+    pub fn focus_parent(&self) -> Result<()> {
+        self.controller.focus_parent()
+    }
+
+    /// Resizes the rendered surface after validating the physical size.
+    pub fn resize_render_surface(&self, size: RenderedWebViewSize) -> Result<()> {
+        validate_rendered_size(size)?;
+        self.backend().resize_render_surface(size)
+    }
+
+    /// Sends a Slint-originated input event to the rendered backend.
+    pub fn send_input_event(&self, event: RenderedWebViewInputEvent) -> Result<()> {
+        self.backend().send_input_event(event)
+    }
+
+    /// Returns the next ready rendered frame after validating its metadata.
+    pub fn next_frame(&self) -> Result<Option<RenderedWebViewFrame>> {
+        let Some(frame) = self.backend().next_frame() else {
+            return Ok(None);
+        };
+        validate_rendered_frame(&frame)?;
+        Ok(Some(frame))
+    }
+
+    /// Drains all rendered frames that are currently ready.
+    pub fn drain_frames(&self) -> Result<Vec<RenderedWebViewFrame>> {
+        let mut frames = Vec::new();
+        while let Some(frame) = self.next_frame()? {
+            frames.push(frame);
+        }
+        Ok(frames)
+    }
+}
+
+/// Validates a rendered webview surface size.
+pub fn validate_rendered_size(size: RenderedWebViewSize) -> Result<()> {
+    if size.is_valid() {
+        Ok(())
+    } else {
+        Err(WebViewError::InvalidRenderedSize(size))
+    }
+}
+
+/// Validates rendered frame dimensions, dirty rectangles, and CPU payload
+/// layout.
+pub fn validate_rendered_frame(frame: &RenderedWebViewFrame) -> Result<()> {
+    if !frame.has_valid_dimensions() {
+        return Err(WebViewError::InvalidRenderedFrame(
+            "frame dimensions must be positive".to_owned(),
+        ));
+    }
+
+    for rect in &frame.dirty_rects {
+        let right = rect
+            .x
+            .checked_add(rect.width)
+            .ok_or_else(|| WebViewError::InvalidRenderedFrame("dirty rect overflows".to_owned()))?;
+        let bottom = rect
+            .y
+            .checked_add(rect.height)
+            .ok_or_else(|| WebViewError::InvalidRenderedFrame("dirty rect overflows".to_owned()))?;
+        if rect.width == 0 || rect.height == 0 || right > frame.width || bottom > frame.height {
+            return Err(WebViewError::InvalidRenderedFrame(
+                "dirty rect must be non-empty and inside the frame".to_owned(),
+            ));
+        }
+    }
+
+    if let RenderedWebViewFramePayload::CpuPixels {
+        bytes,
+        stride,
+        format,
+    } = &frame.payload
+    {
+        let minimum_stride = frame.width as usize * format.bytes_per_pixel();
+        if *stride < minimum_stride {
+            return Err(WebViewError::InvalidRenderedFrame(
+                "CPU frame stride is smaller than width * bytes_per_pixel".to_owned(),
+            ));
+        }
+        let minimum_len = stride.checked_mul(frame.height as usize).ok_or_else(|| {
+            WebViewError::InvalidRenderedFrame("CPU frame byte length overflows".to_owned())
+        })?;
+        if bytes.len() < minimum_len {
+            return Err(WebViewError::InvalidRenderedFrame(
+                "CPU frame byte buffer is smaller than stride * height".to_owned(),
+            ));
+        }
+    }
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use std::cell::RefCell;
+    use std::sync::mpsc;
 
     use super::*;
+    use crate::{CompositionTier, WebViewCapabilities};
 
     #[test]
     fn rendered_size_requires_positive_dimensions_and_scale() {
@@ -403,8 +596,53 @@ mod tests {
         );
     }
 
+    #[test]
+    fn invalid_cpu_frame_stride_is_rejected() {
+        let frame = RenderedWebViewFrame {
+            id: RenderedWebViewFrameId(1),
+            width: 2,
+            height: 2,
+            dirty_rects: Vec::new(),
+            payload: RenderedWebViewFramePayload::CpuPixels {
+                bytes: vec![0; 16],
+                stride: 4,
+                format: RenderedWebViewPixelFormat::Bgra8Premultiplied,
+            },
+        };
+
+        assert!(matches!(
+            validate_rendered_frame(&frame),
+            Err(WebViewError::InvalidRenderedFrame(_))
+        ));
+    }
+
+    #[test]
+    fn dirty_rects_must_stay_inside_the_frame() {
+        let mut frame = RenderedWebViewFrame::cpu_pixels(
+            RenderedWebViewFrameId(1),
+            10,
+            10,
+            RenderedWebViewPixelFormat::Bgra8Premultiplied,
+            vec![
+                0;
+                RenderedWebViewFrame::minimum_cpu_byte_len(
+                    10,
+                    10,
+                    RenderedWebViewPixelFormat::Bgra8Premultiplied,
+                )
+            ],
+        );
+        frame.dirty_rects = vec![RenderedWebViewDirtyRect::new(8, 8, 4, 4)];
+
+        assert!(matches!(
+            validate_rendered_frame(&frame),
+            Err(WebViewError::InvalidRenderedFrame(_))
+        ));
+    }
+
     #[derive(Default)]
     struct RecordingRenderedBackend {
+        operations: RefCell<Vec<String>>,
         inputs: RefCell<Vec<RenderedWebViewInputEvent>>,
         frames: RefCell<Vec<RenderedWebViewFrame>>,
         sizes: RefCell<Vec<RenderedWebViewSize>>,
@@ -427,6 +665,73 @@ mod tests {
 
         fn next_frame(&self) -> Option<RenderedWebViewFrame> {
             self.frames.borrow_mut().pop()
+        }
+    }
+
+    impl WebViewBackend for RecordingRenderedBackend {
+        fn capabilities() -> WebViewCapabilities {
+            WebViewCapabilities {
+                backend_name: "recording-rendered",
+                engine_name: "test",
+                composition_tier: CompositionTier::SlintOwnedTexture,
+                supports_transparency: true,
+                supports_clipping: true,
+                supports_overlays_above_webview: true,
+                supports_script_eval: true,
+                supports_host_messaging: true,
+                supports_custom_user_agent: true,
+                supports_download_interception: false,
+                supports_permission_interception: false,
+                requires_external_runtime: false,
+            }
+        }
+
+        fn set_bounds(&self, bounds: WebViewBounds) -> Result<()> {
+            self.operations
+                .borrow_mut()
+                .push(format!("bounds:{}x{}", bounds.width, bounds.height));
+            Ok(())
+        }
+
+        fn set_visible(&self, visible: bool) -> Result<()> {
+            self.operations
+                .borrow_mut()
+                .push(format!("visible:{visible}"));
+            Ok(())
+        }
+
+        fn load_html(&self, html: &str) -> Result<()> {
+            self.operations.borrow_mut().push(format!("html:{html}"));
+            Ok(())
+        }
+
+        fn load_url(&self, url: &str) -> Result<()> {
+            self.operations.borrow_mut().push(format!("url:{url}"));
+            Ok(())
+        }
+
+        fn evaluate_script(&self, script: &str, request_id: ScriptRequestId) -> Result<()> {
+            self.operations
+                .borrow_mut()
+                .push(format!("script:{}:{script}", request_id.0));
+            Ok(())
+        }
+
+        fn focus(&self) -> Result<()> {
+            self.operations.borrow_mut().push("focus".to_owned());
+            Ok(())
+        }
+
+        fn set_keyboard_focus_enabled(&self, enabled: bool) -> Result<()> {
+            self.operations
+                .borrow_mut()
+                .push(format!("keyboard:{enabled}"));
+            Ok(())
+        }
+
+        fn focus_parent(&self) -> Result<()> {
+            self.operations.borrow_mut().push("focus-parent".to_owned());
+            Ok(())
         }
     }
 
@@ -453,5 +758,50 @@ mod tests {
         assert_eq!(backend.inputs.borrow().len(), 1);
         assert_eq!(backend.next_frame(), Some(frame));
         assert!(backend.next_frame().is_none());
+    }
+
+    #[test]
+    fn rendered_controller_routes_browser_render_input_and_frame_paths() {
+        let (_sender, receiver) = mpsc::channel();
+        let backend = RecordingRenderedBackend::default();
+        let frame = RenderedWebViewFrame::cpu_pixels(
+            RenderedWebViewFrameId(1),
+            1,
+            1,
+            RenderedWebViewPixelFormat::Rgba8Premultiplied,
+            vec![255; 4],
+        );
+        backend.frames.borrow_mut().push(frame.clone());
+        let controller = BackendRenderedWebViewController::new(backend, receiver);
+
+        controller.load_html("<p>ready</p>").unwrap();
+        controller
+            .resize_render_surface(RenderedWebViewSize::new(1, 1, 1.0))
+            .unwrap();
+        controller
+            .send_input_event(RenderedWebViewInputEvent::FocusChanged { focused: true })
+            .unwrap();
+
+        assert_eq!(
+            controller.backend().operations.borrow().as_slice(),
+            ["html:<p>ready</p>"]
+        );
+        assert_eq!(controller.backend().sizes.borrow().len(), 1);
+        assert_eq!(controller.backend().inputs.borrow().len(), 1);
+        assert_eq!(controller.next_frame().unwrap(), Some(frame));
+        assert!(controller.next_frame().unwrap().is_none());
+    }
+
+    #[test]
+    fn rendered_controller_rejects_invalid_surface_size() {
+        let (_sender, receiver) = mpsc::channel();
+        let controller =
+            BackendRenderedWebViewController::new(RecordingRenderedBackend::default(), receiver);
+
+        assert!(matches!(
+            controller.resize_render_surface(RenderedWebViewSize::new(0, 1, 1.0)),
+            Err(WebViewError::InvalidRenderedSize(_))
+        ));
+        assert!(controller.backend().sizes.borrow().is_empty());
     }
 }

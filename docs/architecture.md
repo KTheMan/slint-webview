@@ -9,9 +9,10 @@ implementations.
 - Core API: option types, events, capabilities, errors, fixtures, area policy,
   `WebViewBackend`, `BackendWebViewController`, `WebViewControllerLike`, and
   `BackendWebViewAreaController` live in `slint-webview-core`.
-- Rendered core API: `RenderedWebViewBackend`, frame payloads, frame
-  transports, rendered surface sizes, dirty rectangles, and Slint-originated
-  input events also live in `slint-webview-core`.
+- Rendered core API: `RenderedWebViewBackend`,
+  `BackendRenderedWebViewController`, frame payloads, frame transports,
+  rendered surface sizes, dirty rectangles, and Slint-originated input events
+  also live in `slint-webview-core`.
 - Facade API: the root `slint-webview` crate re-exports core types and provides
   `WebViewController` plus the Tier 1.5 `WebViewAreaController` wrapper.
 - Controller: the shared core low-level controller owns the backend instance, event
@@ -31,8 +32,8 @@ implementations.
 The workspace shape is:
 
 - `slint-webview-core`: shared API, event model, area policy, low-level
-  controller, area controller, rendered-backend contracts, fixtures, docs, and
-  Slint component assets.
+  controller, area controller, rendered-backend controller/contracts, fixtures,
+  docs, and Slint component assets.
 - `slint-webview-native`: Wry-backed native platform webview backend.
 - `slint-webview-servo`: shell for Servo rendered into Slint-owned textures.
 - `slint-webview-cef`: shell for CEF windowless/offscreen Chromium rendered
@@ -75,9 +76,10 @@ layout, JavaScript, network loading, storage, and browser-process policy.
 
 Rendered backends implement the normal `WebViewBackend` contract for browser
 operations and `RenderedWebViewBackend` for frame production, surface resizing,
-and Slint-originated input events. The shared frame contract supports CPU pixel
-buffers as a portable baseline and external texture identifiers for accelerated
-paths.
+and Slint-originated input events. `BackendRenderedWebViewController` combines
+those contracts and validates rendered surface sizes and frames before they
+reach Slint. The shared frame contract supports CPU pixel buffers as a portable
+baseline and external texture identifiers for accelerated paths.
 
 ## Error Boundaries
 

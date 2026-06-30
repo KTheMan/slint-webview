@@ -128,6 +128,11 @@ composition backends such as Servo and CEF. A rendered backend still implements
 - Slint-originated pointer, wheel, keyboard, IME, and focus input events.
 - Producing the next available rendered frame.
 
+`BackendRenderedWebViewController<B>` wraps a backend that implements both
+contracts. It delegates normal browser work to `BackendWebViewController`,
+validates rendered surface sizes, forwards Slint input events, validates frame
+metadata, and drains ready frames.
+
 The shared rendered frame model supports two transports:
 
 - `CpuPixels`: portable paint-buffer output with format and stride metadata.
