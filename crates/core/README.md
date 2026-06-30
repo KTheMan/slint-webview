@@ -1,7 +1,7 @@
 # slint-webview-core
 
-Shared API, capability, error, fixture, and area-controller types for the
-`slint-webview` backend family.
+Shared API, capability, error, fixture, area-controller, and rendered-backend
+types for the `slint-webview` backend family.
 
 This crate intentionally contains no browser engine. Backend crates such as
 `slint-webview-native`, `slint-webview-servo`, and `slint-webview-cef` should
@@ -14,3 +14,7 @@ source dispatch, and bounds validation.
 Backend crates can also implement `WebViewControllerLike` for their public
 controller type and reuse `BackendWebViewAreaController` for Slint placeholder
 sync, hiding/parking policy, and focus-event handling.
+
+Servo and CEF style backends can implement `RenderedWebViewBackend` and use the
+shared rendered frame/input types for Slint-owned texture or paint-buffer
+composition.

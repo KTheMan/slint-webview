@@ -41,6 +41,8 @@ The most important hardening work is complete:
 - Shared backend-controller behavior now lives in `BackendWebViewController`.
 - Shared Slint placeholder synchronization, parking, overlay, and focus policy
   now live in `BackendWebViewAreaController`.
+- Shared rendered-frame and Slint-originated input contracts now live in
+  `RenderedWebViewBackend` and related core types for future Servo/CEF work.
 - The native Wry backend lives in `slint-webview-native`; Servo and CEF backend
   crate shells compile against the shared core.
 - Linux native backend dependencies are optional behind `backend-wry`, so
@@ -160,6 +162,7 @@ Current regression coverage proves:
 - Pure `WebViewBackend` shared controller behavior.
 - Pure `BackendWebViewAreaController` sync, parking, event-pump, and
   focus-policy behavior.
+- Pure rendered-backend frame, transport, resize, and input contract behavior.
 - Workspace compilation for core plus native, Servo, and CEF crates.
 - Formatting, clippy, and rustdoc gates.
 - `examples/area.rs` compilation through all-target checks.

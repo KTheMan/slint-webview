@@ -20,8 +20,13 @@ pub use controller::{WebViewController, initialize_platform, pump_platform_event
 pub use slint_webview_core::fixture;
 pub use slint_webview_core::{
     BackendWebViewAreaController, BackendWebViewController, CompositionTier, DEFAULT_PARK_BOUNDS,
-    HiddenWebViewStrategy, NavigationDecision, NavigationPolicy, Result, ScriptRequestId,
-    WebViewAreaPlacement, WebViewAreaPolicy, WebViewAreaState, WebViewAreaStatus, WebViewBackend,
-    WebViewBounds, WebViewCapabilities, WebViewControllerLike, WebViewError, WebViewEvent,
-    WebViewOptions, WebViewSource, validate_bounds,
+    HiddenWebViewStrategy, NavigationDecision, NavigationPolicy, RenderedWebViewBackend,
+    RenderedWebViewCapabilities, RenderedWebViewDirtyRect, RenderedWebViewFrame,
+    RenderedWebViewFrameId, RenderedWebViewFramePayload, RenderedWebViewFrameTransport,
+    RenderedWebViewInputEvent, RenderedWebViewInputState, RenderedWebViewModifiers,
+    RenderedWebViewPixelFormat, RenderedWebViewPointerButton, RenderedWebViewSize,
+    RenderedWebViewTextureApi, Result, ScriptRequestId, WebViewAreaPlacement, WebViewAreaPolicy,
+    WebViewAreaState, WebViewAreaStatus, WebViewBackend, WebViewBounds, WebViewCapabilities,
+    WebViewControllerLike, WebViewError, WebViewEvent, WebViewOptions, WebViewSource,
+    validate_bounds,
 };

@@ -8,13 +8,23 @@
 
 pub use slint_webview_core as core;
 pub use slint_webview_core::{
-    BackendWebViewAreaController, BackendWebViewController, CompositionTier, WebViewBackend,
-    WebViewCapabilities, WebViewControllerLike,
+    BackendWebViewAreaController, BackendWebViewController, CompositionTier,
+    RenderedWebViewBackend, RenderedWebViewCapabilities, RenderedWebViewDirtyRect,
+    RenderedWebViewFrame, RenderedWebViewFrameId, RenderedWebViewFramePayload,
+    RenderedWebViewFrameTransport, RenderedWebViewInputEvent, RenderedWebViewInputState,
+    RenderedWebViewModifiers, RenderedWebViewPixelFormat, RenderedWebViewPointerButton,
+    RenderedWebViewSize, RenderedWebViewTextureApi, WebViewBackend, WebViewCapabilities,
+    WebViewControllerLike,
 };
 
 /// Returns the planned CEF backend capabilities.
 pub const fn planned_capabilities() -> WebViewCapabilities {
     WebViewCapabilities::cef_offscreen()
+}
+
+/// Returns the planned CEF rendered-backend capabilities.
+pub const fn planned_rendered_capabilities() -> RenderedWebViewCapabilities {
+    RenderedWebViewCapabilities::cef_offscreen()
 }
 
 #[cfg(test)]
@@ -27,5 +37,14 @@ mod tests {
             planned_capabilities().composition_tier,
             CompositionTier::SlintOwnedTexture
         );
+    }
+
+    #[test]
+    fn cef_shell_prefers_cpu_pixel_frames() {
+        assert_eq!(
+            planned_rendered_capabilities().preferred_transport,
+            RenderedWebViewFrameTransport::CpuPixels
+        );
+        assert!(planned_rendered_capabilities().supports_external_textures);
     }
 }

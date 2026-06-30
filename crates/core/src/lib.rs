@@ -14,6 +14,7 @@ mod capabilities;
 mod error;
 #[cfg(any(test, feature = "testing"))]
 pub mod fixture;
+mod render;
 
 pub use api::{
     NavigationDecision, NavigationPolicy, ScriptRequestId, WebViewBounds, WebViewEvent,
@@ -26,3 +27,10 @@ pub use area::{
 pub use backend::{BackendWebViewController, WebViewBackend, validate_bounds};
 pub use capabilities::{CompositionTier, WebViewCapabilities};
 pub use error::{Result, WebViewError};
+pub use render::{
+    RenderedWebViewBackend, RenderedWebViewCapabilities, RenderedWebViewDirtyRect,
+    RenderedWebViewFrame, RenderedWebViewFrameId, RenderedWebViewFramePayload,
+    RenderedWebViewFrameTransport, RenderedWebViewInputEvent, RenderedWebViewInputState,
+    RenderedWebViewModifiers, RenderedWebViewPixelFormat, RenderedWebViewPointerButton,
+    RenderedWebViewSize, RenderedWebViewTextureApi,
+};

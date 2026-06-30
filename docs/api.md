@@ -116,3 +116,25 @@ their concrete engine surface, then use the shared low-level controller for:
 The root native facade already routes its Wry-backed native webview through
 `BackendWebViewController<NativeWebView>`. Servo and CEF backends should use the
 same shared controller once their concrete engine instances exist.
+
+## `RenderedWebViewBackend`
+
+`RenderedWebViewBackend` is the additional core trait for Slint-owned
+composition backends such as Servo and CEF. A rendered backend still implements
+`WebViewBackend` for browser operations, then implements
+`RenderedWebViewBackend` for:
+
+- Physical-pixel surface resize requests.
+- Slint-originated pointer, wheel, keyboard, IME, and focus input events.
+- Producing the next available rendered frame.
+
+The shared rendered frame model supports two transports:
+
+- `CpuPixels`: portable paint-buffer output with format and stride metadata.
+- `ExternalTexture`: accelerated output identified by an opaque texture ID and
+  graphics API.
+
+Servo currently advertises `RenderedWebViewCapabilities::servo_texture()`, which
+prefers external textures and keeps CPU pixels as a fallback. CEF advertises
+`RenderedWebViewCapabilities::cef_offscreen()`, which prefers CPU pixels first
+and leaves room for accelerated textures later.

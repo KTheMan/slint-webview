@@ -20,6 +20,8 @@ workspace are non-authoritative unless a maintainer explicitly points to them.
   implementations.
 - A shared `WebViewControllerLike` trait and `BackendWebViewAreaController` so
   native, Servo, and CEF backends can reuse the same area sync/focus policy.
+- A shared `RenderedWebViewBackend` contract for future Servo/CEF Slint-owned
+  frame output and input routing.
 - A Rust library API centered on `WebViewController`.
 - A Tier 1.5 `WebViewArea`/`WebViewAreaController` composition layer for Slint
   apps that want reusable parking, overlay, and focus policy.
@@ -124,7 +126,7 @@ The repository now has a shared core plus backend crates:
 
 - `slint-webview-core` for API types, events, policy, fixtures, and Slint
   component assets, including the backend-agnostic low-level and area
-  controllers.
+  controllers plus rendered frame/input contracts.
 - `slint-webview-native` for Wry-backed WebView2, WKWebView, and WebKitGTK.
 - `slint-webview-servo` for Servo-backed Slint texture composition.
 - `slint-webview-cef` for CEF windowless/offscreen Chromium composition.
@@ -135,6 +137,10 @@ consistency paths because they can target Slint-owned texture/offscreen
 composition. The root facade delegates native backend work to
 `slint-webview-native` and shared controller policy to `slint-webview-core`. See
 [docs/backend-crate-strategy.md](docs/backend-crate-strategy.md).
+
+Servo advertises a planned rendered backend that prefers external texture
+frames with CPU pixels as a fallback. CEF advertises a planned rendered backend
+that starts with CPU paint buffers and can add accelerated texture paths later.
 
 ## Installation
 

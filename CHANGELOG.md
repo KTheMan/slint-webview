@@ -37,6 +37,9 @@ Initial release candidate for native webview composition in Slint apps.
 - `WebViewControllerLike` and `BackendWebViewAreaController` shared area
   contract so native, Servo, and CEF controllers can reuse the same Slint
   placeholder, overlay, parking, and focus policy.
+- `RenderedWebViewBackend` plus shared rendered frame, frame transport,
+  rendered surface size, dirty-rectangle, and input-event types for future Servo
+  and CEF Slint-owned composition.
 - Wry implementation moved into `slint-webview-native`, with the root
   `slint-webview` crate acting as a facade over the native backend.
 

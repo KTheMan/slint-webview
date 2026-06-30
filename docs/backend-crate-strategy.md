@@ -49,6 +49,12 @@ controller that satisfies `WebViewControllerLike`, then reuse the shared area
 controller for Slint placeholder synchronization, overlay hiding/parking,
 shell-focus release, and focus-request event policy.
 
+For Slint-owned composition, `slint-webview-core` provides
+`RenderedWebViewBackend` plus shared rendered-frame and input-event types. Servo
+and CEF implementations should implement this rendered contract in addition to
+`WebViewBackend`, so their final engine adapters differ only where frame
+production, texture sharing, and engine input translation require it.
+
 ## Composition Families
 
 ### Native
@@ -82,6 +88,8 @@ This backend should prioritize:
   texture path.
 - Common input translation from Slint pointer, wheel, keyboard, IME, clipboard,
   and focus events into Servo.
+- `RenderedWebViewCapabilities::servo_texture()` as the baseline capability
+  contract: external textures preferred, CPU pixels still available.
 - Clear compatibility labeling because Servo's web-platform coverage is still
   different from Chromium and platform WebKit.
 
@@ -96,6 +104,8 @@ This backend should prioritize:
 
 - CPU paint-buffer support first, because it is the most portable baseline.
 - Accelerated paint/shared-texture paths per platform after the baseline works.
+- `RenderedWebViewCapabilities::cef_offscreen()` as the baseline capability
+  contract: CPU pixels preferred, external textures allowed later.
 - Explicit packaging docs for CEF binaries and subprocesses.
 - A security/update policy, because shipping Chromium means inheriting browser
   patch cadence responsibilities.
@@ -126,10 +136,12 @@ observable behavior.
    area-controller behavior in `slint-webview-core`.
 3. Keep the Wry code in `slint-webview-native` and keep the facade depending on
    it by default.
-4. Add `slint-webview-servo` behind an opt-in feature or separate example app.
-5. Add `slint-webview-cef` after Servo or in parallel if Chromium compatibility
+4. Keep rendered frame/input contracts in `slint-webview-core` so Servo and CEF
+   share Slint-owned composition semantics.
+5. Add `slint-webview-servo` behind an opt-in feature or separate example app.
+6. Add `slint-webview-cef` after Servo or in parallel if Chromium compatibility
    is the priority.
-6. Promote backend-agnostic examples and tests so all three backend crates run
+7. Promote backend-agnostic examples and tests so all three backend crates run
    the same low-level controller and area-controller contracts.
 
 ## Decision Guidance
