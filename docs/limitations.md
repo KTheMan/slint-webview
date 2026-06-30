@@ -46,6 +46,9 @@ stack exposed through Wry.
 
 - True Slint scene-graph widget.
 - Slint-owned web texture rendering.
+- Servo backend.
+- CEF backend.
+- Multi-crate shared-core/backend split.
 - Public custom protocol API.
 - Permission prompt interception.
 - Runtime diagnostics for missing platform runtimes before attach.

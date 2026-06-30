@@ -16,6 +16,8 @@ owner chooses the crates.io publishing policy.
 - Confirm LGPL-3.0-only is still the intended license.
 - Decide whether `ui/webview-area.slint` should remain a source import or move
   to Slint's experimental crate module build flow.
+- Decide whether the first public release should remain a single facade/native
+  crate or wait for the `core`/`native`/`servo`/`cef` backend split.
 
 ## Local Release Validation
 

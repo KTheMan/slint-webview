@@ -1,6 +1,8 @@
 # Architecture
 
-`slint-webview` is split into a small public API and a private backend adapter.
+`slint-webview` is currently split into a small public API and a private Wry
+backend adapter. It is intended to evolve into a shared-core package plus
+backend-specific crates.
 
 ## Layers
 
@@ -15,6 +17,22 @@
   and callbacks used by applications.
 - Regression app: Slint UI plus native webview, compiled only with
   `--features testing`.
+
+## Future Package Split
+
+The preferred long-term shape is:
+
+- `slint-webview-core`: shared API, event model, area policy, fixtures, docs,
+  and Slint component assets.
+- `slint-webview-native`: Wry and native platform webviews.
+- `slint-webview-servo`: Servo rendered into Slint-owned textures.
+- `slint-webview-cef`: CEF windowless/offscreen Chromium rendered into
+  Slint-owned textures.
+- `slint-webview`: facade crate that picks a backend through features.
+
+The current crate should not expose backend types, because the same
+`WebViewController` and `WebViewAreaController` contract should be usable by all
+future backend crates.
 
 ## Why Controller First
 
@@ -37,6 +55,13 @@ Known policy choices:
 - Avoid relying on Slint clipping or transforms for the webview area.
 - Treat resize and scale updates as app responsibilities unless they are routed
   through `WebViewAreaController::sync`.
+
+## Texture Composition
+
+Servo and CEF backends should target `CompositionTier::SlintOwnedTexture`. In
+that model, Slint receives a texture or pixel buffer from the backend and owns
+z-order, clipping, overlays, and visual composition. The backend still owns web
+layout, JavaScript, network loading, storage, and browser-process policy.
 
 ## Error Boundaries
 

@@ -18,6 +18,8 @@ workspace are non-authoritative unless a maintainer explicitly points to them.
 - A Tier 1.5 `WebViewArea`/`WebViewAreaController` composition layer for Slint
   apps that want reusable parking, overlay, and focus policy.
 - A Wry-backed native child-view implementation.
+- A documented path toward shared-core backend crates for native, Servo, and
+  CEF implementations.
 - Conservative defaults: blank page, JavaScript off, devtools off, clipboard
   off, downloads off, popups off, initial webview focus off.
 - Structured events for navigation, IPC, title changes, script results, popups,
@@ -109,6 +111,21 @@ behavior is slow or inconsistent.
 
 See [examples/area.rs](examples/area.rs) and
 [docs/webview-area.md](docs/webview-area.md).
+
+## Backend Direction
+
+The intended longer-term package shape is a shared core plus backend crates:
+
+- `slint-webview-core` for API types, events, policy, fixtures, and Slint
+  component assets.
+- `slint-webview-native` for Wry-backed WebView2, WKWebView, and WebKitGTK.
+- `slint-webview-servo` for Servo-backed Slint texture composition.
+- `slint-webview-cef` for CEF windowless/offscreen Chromium composition.
+- `slint-webview` as a convenience facade.
+
+Native remains the smallest platform-integrated path. Servo and CEF are the
+consistency paths because they can target Slint-owned texture/offscreen
+composition. See [docs/backend-crate-strategy.md](docs/backend-crate-strategy.md).
 
 ## Installation
 
@@ -203,6 +220,7 @@ cargo run --features testing --bin slint-webview-regression -- --smoke
 - [Technical specification](docs/spec.md)
 - [Architecture](docs/architecture.md)
 - [API notes](docs/api.md)
+- [Backend crate strategy](docs/backend-crate-strategy.md)
 - [Security model](docs/security.md)
 - [Testing strategy](docs/testing.md)
 - [WebViewArea composition](docs/webview-area.md)

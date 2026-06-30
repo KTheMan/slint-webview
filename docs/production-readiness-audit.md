@@ -29,7 +29,8 @@ The most important hardening work is complete:
 - Bounds are documented and validated before attach/update.
 - Rustdoc is enabled with `#![warn(missing_docs)]`.
 - README and standalone docs cover PRD, spec, architecture, API, WebViewArea
-  composition, security, testing, limitations, platform notes, and licensing.
+  composition, backend strategy, security, testing, limitations, platform
+  notes, and licensing.
 - Canonical check scripts run formatting, clippy, tests, docs, and regression
   binary checks.
 - Release package scripts run the static gates and `cargo package`.
@@ -86,6 +87,8 @@ Current API caveats:
   preflight report.
 - The shipped Slint component is a source component import, not yet a Slint
   experimental crate module.
+- The repository has a documented backend split strategy, but it has not yet
+  been mechanically split into `core`, `native`, `servo`, and `cef` crates.
 
 ## Functional Review
 
@@ -125,6 +128,7 @@ Documentation now exists in:
 - `docs/security.md`
 - `docs/testing.md`
 - `docs/webview-area.md`
+- `docs/backend-crate-strategy.md`
 - `docs/limitations.md`
 - `docs/platforms/windows.md`
 - `docs/platforms/linux-wsl.md`
@@ -178,6 +182,8 @@ Current package state:
 Before publish, decide:
 
 - Public crate name.
+- Whether to publish one facade crate first or split into shared-core and
+  backend crates before the first crates.io release.
 - Whether to include `Cargo.lock`.
 - Public stability label: alpha, preview, or experimental.
 

@@ -21,6 +21,11 @@ types directly.
 The crate also ships `ui/webview-area.slint`, a declarative placeholder
 component for apps that want the webview represented in their Slint UI tree.
 
+Future backend crates should implement the same public contract from a shared
+core crate. The planned names are `slint-webview-native`,
+`slint-webview-servo`, and `slint-webview-cef`, with `slint-webview` remaining a
+facade crate.
+
 ## Lifecycle
 
 1. Call `initialize_platform()` once before attaching webviews. On Linux this
@@ -91,6 +96,10 @@ needs to appear above it.
 `WebViewAreaPolicy::default()` uses offscreen parking for hidden webviews. Apps
 may opt into native hide or hide-and-park if that fits their platform behavior
 better.
+
+Servo and CEF backends should report `CompositionTier::SlintOwnedTexture` once
+they render into buffers or textures owned by Slint. A Windows-only WebView2
+Visual Hosting backend should report `CompositionTier::PlatformVisualHosting`.
 
 ## Feature Flags
 

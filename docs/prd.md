@@ -11,12 +11,18 @@ Slint-facing area wrapper for native-child composition, deterministic regression
 coverage, and clear documentation. Publishing is explicitly out of scope for
 this milestone.
 
+The follow-on product direction is a shared core with separate native, Servo,
+and CEF backend crates. Native targets minimum footprint and platform fidelity;
+Servo and CEF target more uniform Slint-owned composition.
+
 ## Users
 
 - Slint app developers who need to show documentation, authentication pages,
   local HTML tools, dashboards, or small embedded web experiences.
 - Maintainers evaluating whether native platform webviews can become a reusable
   Slint composition layer.
+- Maintainers evaluating Servo or CEF as consistent texture-rendered backends
+  behind the same Slint-facing API.
 - Test authors validating that normal Slint UI still works while a native
   webview is attached.
 
@@ -60,7 +66,7 @@ this milestone.
   colors.
 - WSL/Linux smoke proves attach and DOM probe when native dependencies exist.
 - README, API docs, architecture docs, WebViewArea docs, security docs,
-  limitations, and platform notes are present.
+  backend strategy docs, limitations, and platform notes are present.
 
 ## Open Product Decisions
 
@@ -70,3 +76,6 @@ this milestone.
 - Whether custom protocols should be exposed in the first public API.
 - Whether async/future-based script evaluation should wrap the current event
   correlation model.
+- Whether the repository should split into `slint-webview-core`,
+  `slint-webview-native`, `slint-webview-servo`, `slint-webview-cef`, and a
+  facade crate before the first public crates.io release.
