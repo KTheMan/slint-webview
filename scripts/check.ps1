@@ -6,15 +6,28 @@ param(
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path -Parent $PSScriptRoot)
 
-cargo fmt --check
-cargo clippy --workspace --all-targets --all-features -- -D warnings
-cargo test --workspace --no-default-features
-cargo test --workspace
-cargo doc --workspace --all-features --no-deps
-cargo check --features testing --bin slint-webview-regression
+function Invoke-Checked {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Command,
+        [string[]]$Arguments
+    )
+
+    & $Command @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "$Command $($Arguments -join ' ') failed with exit code $LASTEXITCODE"
+    }
+}
+
+Invoke-Checked "cargo" @("fmt", "--check")
+Invoke-Checked "cargo" @("clippy", "--workspace", "--all-targets", "--all-features", "--", "-D", "warnings")
+Invoke-Checked "cargo" @("test", "--workspace", "--no-default-features")
+Invoke-Checked "cargo" @("test", "--workspace")
+Invoke-Checked "cargo" @("doc", "--workspace", "--all-features", "--no-deps")
+Invoke-Checked "cargo" @("check", "--features", "testing", "--bin", "slint-webview-regression")
 
 if ($Smoke) {
-    cargo run --features testing --bin slint-webview-regression -- --smoke
+    Invoke-Checked "cargo" @("run", "--features", "testing", "--bin", "slint-webview-regression", "--", "--smoke")
 }
 
 if ($Visual) {

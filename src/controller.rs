@@ -1,11 +1,12 @@
 use std::sync::mpsc;
 
 use raw_window_handle::HasWindowHandle;
-use slint_webview_core::{
-    BackendWebViewController, WebViewBackend, WebViewControllerLike, validate_bounds,
+use slint_webview_core::{BackendWebViewController, WebViewControllerLike, validate_bounds};
+use slint_webview_native::{
+    NativeWebView, initialize_platform as initialize_native_platform,
+    pump_platform_events as pump_native_platform_events,
 };
 
-use crate::platform;
 use crate::{
     Result, ScriptRequestId, WebViewBounds, WebViewCapabilities, WebViewEvent, WebViewOptions,
     WebViewSource,
@@ -17,7 +18,7 @@ use crate::{
 /// surface for loading content, resizing, focusing, evaluating JavaScript, and
 /// receiving webview events.
 pub struct WebViewController {
-    inner: BackendWebViewController<platform::NativeWebView>,
+    inner: BackendWebViewController<NativeWebView>,
 }
 
 impl WebViewController {
@@ -29,7 +30,7 @@ impl WebViewController {
         validate_bounds(options.bounds)?;
 
         let (sender, events) = mpsc::channel();
-        let backend = platform::NativeWebView::attach(window, options, sender)?;
+        let backend = NativeWebView::attach(window, options, sender)?;
         let inner = BackendWebViewController::new(backend, events);
 
         Ok(Self { inner })
@@ -37,7 +38,7 @@ impl WebViewController {
 
     /// Returns the capabilities of the selected backend.
     pub fn capabilities() -> WebViewCapabilities {
-        BackendWebViewController::<platform::NativeWebView>::capabilities()
+        BackendWebViewController::<NativeWebView>::capabilities()
     }
 
     /// Attempts to receive one pending event.
@@ -103,50 +104,12 @@ impl WebViewController {
 
 /// Initializes platform-specific webview prerequisites.
 pub fn initialize_platform() -> Result<()> {
-    platform::initialize_platform()
+    initialize_native_platform()
 }
 
 /// Pumps platform-specific webview events that are not driven by Slint.
 pub fn pump_platform_events() {
-    platform::pump_platform_events();
-}
-
-impl WebViewBackend for platform::NativeWebView {
-    fn capabilities() -> WebViewCapabilities {
-        platform::NativeWebView::capabilities()
-    }
-
-    fn set_bounds(&self, bounds: WebViewBounds) -> Result<()> {
-        platform::NativeWebView::set_bounds(self, bounds)
-    }
-
-    fn set_visible(&self, visible: bool) -> Result<()> {
-        platform::NativeWebView::set_visible(self, visible)
-    }
-
-    fn load_html(&self, html: &str) -> Result<()> {
-        platform::NativeWebView::load_html(self, html)
-    }
-
-    fn load_url(&self, url: &str) -> Result<()> {
-        platform::NativeWebView::load_url(self, url)
-    }
-
-    fn evaluate_script(&self, script: &str, request_id: ScriptRequestId) -> Result<()> {
-        platform::NativeWebView::evaluate_script(self, script, request_id)
-    }
-
-    fn focus(&self) -> Result<()> {
-        platform::NativeWebView::focus(self)
-    }
-
-    fn set_keyboard_focus_enabled(&self, enabled: bool) -> Result<()> {
-        platform::NativeWebView::set_keyboard_focus_enabled(self, enabled)
-    }
-
-    fn focus_parent(&self) -> Result<()> {
-        platform::NativeWebView::focus_parent(self)
-    }
+    pump_native_platform_events();
 }
 
 impl WebViewControllerLike for WebViewController {

@@ -22,11 +22,16 @@ use x11rb::protocol::xproto::{
     ConfigureWindowAux, ConnectionExt as XprotoConnectionExt, InputFocus,
 };
 
-use crate::{
+use slint_webview_core::{
     NavigationDecision, Result, ScriptRequestId, WebViewBounds, WebViewCapabilities, WebViewError,
     WebViewEvent, WebViewOptions, WebViewSource,
 };
 
+/// Wry-backed native child webview.
+///
+/// This backend uses the platform browser surface selected by Wry: WebView2 on
+/// Windows, WKWebView on macOS, and WebKitGTK on Linux. It is a native child
+/// view, not a Slint-rendered texture.
 pub struct NativeWebView {
     inner: WebView,
     event_sender: Sender<WebViewEvent>,
@@ -39,6 +44,7 @@ pub struct NativeWebView {
 }
 
 impl NativeWebView {
+    /// Creates and attaches a Wry native child webview to a host window.
     pub fn attach<W>(
         window: &W,
         options: WebViewOptions,
@@ -191,10 +197,12 @@ impl NativeWebView {
         })
     }
 
+    /// Returns the static capabilities for the Wry native backend.
     pub fn capabilities() -> WebViewCapabilities {
         WebViewCapabilities::wry_native()
     }
 
+    /// Updates the native child webview bounds in Slint logical coordinates.
     pub fn set_bounds(&self, bounds: WebViewBounds) -> Result<()> {
         self.inner
             .set_bounds(to_wry_rect(bounds))
@@ -211,24 +219,28 @@ impl NativeWebView {
         Ok(())
     }
 
+    /// Shows or hides the native child webview.
     pub fn set_visible(&self, visible: bool) -> Result<()> {
         self.inner
             .set_visible(visible)
             .map_err(|error| WebViewError::Native(error.to_string()))
     }
 
+    /// Loads an HTML string into the webview.
     pub fn load_html(&self, html: &str) -> Result<()> {
         self.inner
             .load_html(html)
             .map_err(|error| WebViewError::Native(error.to_string()))
     }
 
+    /// Loads a URL into the webview.
     pub fn load_url(&self, url: &str) -> Result<()> {
         self.inner
             .load_url(url)
             .map_err(|error| WebViewError::Native(error.to_string()))
     }
 
+    /// Evaluates JavaScript and reports the result through the shared event stream.
     pub fn evaluate_script(&self, script: &str, request_id: ScriptRequestId) -> Result<()> {
         let event_sender = self.event_sender.clone();
         self.inner
@@ -238,12 +250,14 @@ impl NativeWebView {
             .map_err(|error| WebViewError::Native(error.to_string()))
     }
 
+    /// Requests native focus for the webview.
     pub fn focus(&self) -> Result<()> {
         self.inner
             .focus()
             .map_err(|error| WebViewError::Native(error.to_string()))
     }
 
+    /// Enables or disables whether the native child may accept keyboard focus.
     pub fn set_keyboard_focus_enabled(&self, enabled: bool) -> Result<()> {
         #[cfg(target_os = "linux")]
         {
@@ -259,6 +273,7 @@ impl NativeWebView {
         Ok(())
     }
 
+    /// Returns focus to the native parent window where supported.
     pub fn focus_parent(&self) -> Result<()> {
         self.inner
             .focus_parent()
@@ -267,6 +282,7 @@ impl NativeWebView {
     }
 }
 
+/// Initializes platform-specific Wry/webview prerequisites.
 pub fn initialize_platform() -> Result<()> {
     #[cfg(target_os = "linux")]
     {
@@ -276,6 +292,7 @@ pub fn initialize_platform() -> Result<()> {
     Ok(())
 }
 
+/// Pumps platform-specific native webview events not driven by Slint.
 pub fn pump_platform_events() {
     #[cfg(target_os = "linux")]
     {

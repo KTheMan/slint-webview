@@ -16,8 +16,8 @@ owner chooses the crates.io publishing policy.
 - Confirm LGPL-3.0-only is still the intended license.
 - Decide whether `ui/webview-area.slint` should remain a source import or move
   to Slint's experimental crate module build flow.
-- Decide whether the first public release should keep Wry inside the facade
-  crate or wait for Wry to move into `slint-webview-native`.
+- Decide whether the first public release should publish `slint-webview-core`
+  and `slint-webview-native` as separate packages before the facade.
 
 ## Local Release Validation
 
@@ -47,9 +47,10 @@ The package scripts run:
 - `cargo package -p slint-webview-core --allow-dirty`
 
 Use `cargo package -p slint-webview-core --list` to inspect the core tarball
-contents. The facade crate cannot be package-verified until
-`slint-webview-core` is published to the selected registry or vendored for the
-release, because Cargo strips path dependencies during package preparation.
+contents. The facade crate cannot be package-verified until path dependencies
+such as `slint-webview-core` and `slint-webview-native` are published to the
+selected registry or vendored for the release, because Cargo strips path
+dependencies during package preparation.
 The manifests have explicit `include` lists so build output and local WebView2
 profile state cannot enter release packages.
 

@@ -12,9 +12,9 @@ coverage, and clear documentation. Publishing is explicitly out of scope for
 this milestone.
 
 The follow-on product direction is now represented in the workspace by a shared
-core plus separate native, Servo, and CEF backend crate shells. Native targets
-minimum footprint and platform fidelity; Servo and CEF target more uniform
-Slint-owned composition.
+core plus separate native, Servo, and CEF backend crates. Native targets minimum
+footprint and platform fidelity; Servo and CEF target more uniform Slint-owned
+composition.
 
 ## Users
 
@@ -77,5 +77,5 @@ Slint-owned composition.
 - Whether custom protocols should be exposed in the first public API.
 - Whether async/future-based script evaluation should wrap the current event
   correlation model.
-- Whether the Wry implementation should move from the facade crate into
-  `slint-webview-native` before the first public crates.io release.
+- Whether Servo or CEF should be the first non-native backend pursued after the
+  native crate split.

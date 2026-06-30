@@ -1,7 +1,8 @@
 # slint-webview-native
 
-Planned native backend crate for Wry-backed WebView2, WKWebView, and WebKitGTK
+Native backend crate for Wry-backed WebView2, WKWebView, and WebKitGTK
 integration.
 
-The current implementation still lives in the root `slint-webview` facade while
-the shared core is being carved out.
+The root `slint-webview` facade depends on this crate for the default native
+backend. This crate owns the Wry integration and implements the shared
+`slint-webview-core` backend contract.

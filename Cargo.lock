@@ -4464,14 +4464,11 @@ dependencies = [
 name = "slint-webview"
 version = "0.1.0"
 dependencies = [
- "gdkx11",
- "gtk",
  "raw-window-handle",
  "serde_json",
  "slint",
  "slint-webview-core",
- "wry",
- "x11rb",
+ "slint-webview-native",
 ]
 
 [[package]]
@@ -4493,7 +4490,12 @@ dependencies = [
 name = "slint-webview-native"
 version = "0.1.0"
 dependencies = [
+ "gdkx11",
+ "gtk",
+ "raw-window-handle",
  "slint-webview-core",
+ "wry",
+ "x11rb",
 ]
 
 [[package]]

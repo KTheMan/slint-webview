@@ -1,6 +1,6 @@
 # Backend Crate Strategy
 
-This workspace uses a shared core plus backend-specific crate shells. The goal
+This workspace uses a shared core plus backend-specific crates. The goal
 is to keep the Slint API, events, security defaults, tests, and component shape
 uniform while allowing each rendering engine to solve only its final
 platform-specific integration step.
@@ -17,10 +17,9 @@ Package split:
 | `slint-webview-cef` | CEF windowless/offscreen Chromium backend | `SlintOwnedTexture`, with platform-specific accelerated paths |
 | `slint-webview` | Convenience facade crate selecting one backend with features | Depends on core plus one backend |
 
-The workspace now contains `slint-webview-core` plus shell crates for native,
-Servo, and CEF. The current Wry implementation still lives in the root
-`slint-webview` facade crate until the backend contract is stable enough to move
-that code into `slint-webview-native` without disrupting examples and tests.
+The workspace now contains `slint-webview-core`, a concrete
+`slint-webview-native` implementation, and shell crates for Servo and CEF. The
+root `slint-webview` facade depends on the native crate by default.
 
 ## Backend Contract
 
@@ -125,8 +124,8 @@ observable behavior.
    decides release policy.
 2. Keep shared API, event, fixture, capability, error, low-level controller, and
    area-controller behavior in `slint-webview-core`.
-3. Move Wry code into `slint-webview-native` and make the facade depend on it
-   by default.
+3. Keep the Wry code in `slint-webview-native` and keep the facade depending on
+   it by default.
 4. Add `slint-webview-servo` behind an opt-in feature or separate example app.
 5. Add `slint-webview-cef` after Servo or in parallel if Chromium compatibility
    is the priority.

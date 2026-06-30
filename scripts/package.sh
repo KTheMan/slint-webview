@@ -14,7 +14,7 @@ if command -v pkg-config >/dev/null 2>&1 \
   cargo doc --workspace --all-features --no-deps
   cargo package -p slint-webview-core --allow-dirty
   cargo package -p slint-webview-core --allow-dirty --list
-  echo "Facade crate package dry-run is blocked until slint-webview-core is published or vendored as part of a release."
+  echo "Facade crate package dry-run is blocked until path dependencies such as slint-webview-core and slint-webview-native are published or vendored as part of a release."
 else
   cat <<'MSG'
 Linux native webview dependencies are missing.

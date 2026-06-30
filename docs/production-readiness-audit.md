@@ -41,7 +41,8 @@ The most important hardening work is complete:
 - Shared backend-controller behavior now lives in `BackendWebViewController`.
 - Shared Slint placeholder synchronization, parking, overlay, and focus policy
   now live in `BackendWebViewAreaController`.
-- Native, Servo, and CEF backend crate shells compile against the shared core.
+- The native Wry backend lives in `slint-webview-native`; Servo and CEF backend
+  crate shells compile against the shared core.
 - Linux native backend dependencies are optional behind `backend-wry`, so
   `--no-default-features` remains a pure API build.
 
@@ -94,9 +95,8 @@ Current API caveats:
   preflight report.
 - The shipped Slint component is a source component import, not yet a Slint
   experimental crate module.
-- The repository has been mechanically split enough to include `core`, `native`,
-  `servo`, and `cef` crates, but Wry implementation code still lives in the
-  facade crate.
+- The repository has been mechanically split enough for the facade to depend on
+  `slint-webview-native`; Servo and CEF remain crate shells.
 
 ## Functional Review
 
@@ -160,7 +160,7 @@ Current regression coverage proves:
 - Pure `WebViewBackend` shared controller behavior.
 - Pure `BackendWebViewAreaController` sync, parking, event-pump, and
   focus-policy behavior.
-- Workspace compilation for core plus native, Servo, and CEF shells.
+- Workspace compilation for core plus native, Servo, and CEF crates.
 - Formatting, clippy, and rustdoc gates.
 - `examples/area.rs` compilation through all-target checks.
 - Regression app compilation behind `testing`.
@@ -194,10 +194,8 @@ Current package state:
 Before publish, decide:
 
 - Public crate name.
-- Whether to publish one facade crate first or move the Wry implementation into
-  `slint-webview-native` before the first crates.io release.
-- Whether `slint-webview-core` is published first or vendored before the facade
-  package is dry-run verified.
+- Whether `slint-webview-core` and `slint-webview-native` are published first or
+  vendored before the facade package is dry-run verified.
 - Whether to include `Cargo.lock`.
 - Public stability label: alpha, preview, or experimental.
 

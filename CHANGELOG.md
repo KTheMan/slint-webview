@@ -30,13 +30,15 @@ Initial release candidate for native webview composition in Slint apps.
 - Compileable `examples/area.rs` demonstrating `WebViewAreaController`.
 - Documentation for architecture, API shape, security model, limitations,
   testing, licensing, and platform notes.
-- `slint-webview-core` shared crate plus compileable `native`, `servo`, and
-  `cef` backend crate shells.
+- `slint-webview-core` shared crate, concrete `native` backend crate, and
+  compileable `servo` and `cef` backend crate shells.
 - `WebViewBackend` and `BackendWebViewController` shared backend contract for
   native, Servo, and CEF implementations.
 - `WebViewControllerLike` and `BackendWebViewAreaController` shared area
   contract so native, Servo, and CEF controllers can reuse the same Slint
   placeholder, overlay, parking, and focus policy.
+- Wry implementation moved into `slint-webview-native`, with the root
+  `slint-webview` crate acting as a facade over the native backend.
 
 ### Known Limitations
 

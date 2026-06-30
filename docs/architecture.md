@@ -1,7 +1,8 @@
 # Architecture
 
-`slint-webview` is a workspace with a shared core crate, a root facade/native
-crate, and backend crate shells for native, Servo, and CEF implementations.
+`slint-webview` is a workspace with a shared core crate, a root facade crate, a
+native backend crate, and backend crate shells for Servo and CEF
+implementations.
 
 ## Layers
 
@@ -15,8 +16,8 @@ crate, and backend crate shells for native, Servo, and CEF implementations.
   allocation.
 - Area controller: the shared core area controller maps Slint placeholder state
   to backend bounds, visibility, parking, and focus policy.
-- Backend adapter: translates controller operations to Wry calls in the root
-  crate for now.
+- Native backend: `slint-webview-native` translates shared backend operations
+  to Wry calls.
 - Slint component: `ui/webview-area.slint` provides the declarative placeholder
   and callbacks used by applications.
 - Regression app: Slint UI plus native webview, compiled only with
@@ -28,12 +29,12 @@ The workspace shape is:
 
 - `slint-webview-core`: shared API, event model, area policy, low-level
   controller, area controller, fixtures, docs, and Slint component assets.
-- `slint-webview-native`: shell for Wry and native platform webviews.
+- `slint-webview-native`: Wry-backed native platform webview backend.
 - `slint-webview-servo`: shell for Servo rendered into Slint-owned textures.
 - `slint-webview-cef`: shell for CEF windowless/offscreen Chromium rendered
   into Slint-owned textures.
-- `slint-webview`: facade crate that currently owns the Wry backend and will
-  later pick a backend through features.
+- `slint-webview`: facade crate that currently selects the native backend by
+  default and will later pick alternate backends through features.
 
 The current crate should not expose concrete backend types, because the same
 core backend trait and facade-level `WebViewController` /

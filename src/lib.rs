@@ -13,7 +13,6 @@
 
 mod area;
 mod controller;
-mod platform;
 
 pub use area::WebViewAreaController;
 pub use controller::{WebViewController, initialize_platform, pump_platform_events};

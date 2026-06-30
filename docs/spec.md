@@ -28,8 +28,9 @@ component for apps that want the webview represented in their Slint UI tree.
 
 Backend crates should implement the same public contract from
 `slint-webview-core`. The workspace now contains `slint-webview-native`,
-`slint-webview-servo`, and `slint-webview-cef` shells, with `slint-webview`
-remaining the facade crate.
+`slint-webview-servo`, and `slint-webview-cef`, with `slint-webview` remaining
+the facade crate. The native crate owns the Wry backend; Servo and CEF remain
+backend shells.
 
 ## Lifecycle
 
@@ -119,5 +120,6 @@ Visual Hosting backend should report `CompositionTier::PlatformVisualHosting`.
 - `backend-wry`: enables the native Wry backend. This is the default feature.
 - `testing`: exposes fixture helpers and the regression app.
 
-`cargo test --workspace --no-default-features` verifies that the public API and
-backend crate shells still compile when no native backend is selected.
+`cargo test --workspace --no-default-features` verifies that the public API, the
+disabled native stub, and backend crate shells still compile when no native
+backend is selected.
