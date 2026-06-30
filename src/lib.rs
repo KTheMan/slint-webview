@@ -12,6 +12,7 @@
 #![warn(missing_docs)]
 
 mod api;
+mod area;
 mod capabilities;
 mod controller;
 mod error;
@@ -22,6 +23,10 @@ mod platform;
 pub use api::{
     NavigationDecision, NavigationPolicy, ScriptRequestId, WebViewBounds, WebViewEvent,
     WebViewOptions, WebViewSource,
+};
+pub use area::{
+    DEFAULT_PARK_BOUNDS, HiddenWebViewStrategy, WebViewAreaController, WebViewAreaPlacement,
+    WebViewAreaPolicy, WebViewAreaState, WebViewAreaStatus,
 };
 pub use capabilities::{CompositionTier, WebViewCapabilities};
 pub use controller::{WebViewController, initialize_platform, pump_platform_events};

@@ -4,11 +4,15 @@
 
 ## Layers
 
-- Public API: option types, events, capabilities, errors, and
-  `WebViewController`.
+- Public API: option types, events, capabilities, errors, `WebViewController`,
+  and the Tier 1.5 `WebViewAreaController` policy wrapper.
 - Controller: owns the backend instance, event receiver, and script request ID
   allocation.
+- Area controller: maps Slint placeholder state to native bounds, visibility,
+  parking, and focus policy.
 - Backend adapter: translates controller operations to Wry calls.
+- Slint component: `ui/webview-area.slint` provides the declarative placeholder
+  and callbacks used by applications.
 - Regression app: Slint UI plus native webview, compiled only with
   `--features testing`.
 
@@ -16,8 +20,9 @@
 
 A controller is honest about the current composition tier. The webview is a
 native child view positioned over a Slint window, not a Slint item painted by
-the renderer. A future Slint component wrapper can be built on top of the
-controller, but the controller remains the portable ownership and event model.
+the renderer. `WebViewAreaController` is built on top of the low-level
+controller, so apps can opt into reusable Slint-facing policy without exposing
+Wry or pretending the native child is renderer-owned.
 
 ## Native Child Composition
 
@@ -28,9 +33,10 @@ layout.
 
 Known policy choices:
 
-- Hide the webview while Slint modals or menus should appear above it.
+- Park or hide the webview while Slint modals or menus should appear above it.
 - Avoid relying on Slint clipping or transforms for the webview area.
-- Treat resize and scale updates as app responsibilities.
+- Treat resize and scale updates as app responsibilities unless they are routed
+  through `WebViewAreaController::sync`.
 
 ## Error Boundaries
 

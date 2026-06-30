@@ -63,3 +63,33 @@ routing. The backend emits `WebViewEvent::FocusRequested` when native pointer
 input indicates that the webview should be allowed to claim focus, and
 `WebViewEvent::FocusChanged` when native keyboard focus enters or leaves the
 webview.
+
+## `WebViewAreaController`
+
+`WebViewAreaController` is the widget-style wrapper for apps that use the
+`ui/webview-area.slint` placeholder component. It owns a `WebViewController` and
+adds policy for:
+
+- Parking or hiding the native child view when the Slint area is hidden.
+- Parking or hiding while Slint modals, menus, or overlays are active.
+- Keeping invalid bounds away from the native backend.
+- Releasing webview keyboard focus while a Slint shell input owns typing.
+- Enabling webview keyboard focus after `WebViewEvent::FocusRequested`.
+
+Important methods:
+
+- `attach`: creates the wrapped native child webview with initial area policy.
+- `sync`: applies a `WebViewAreaState` to native bounds, visibility, parking,
+  and focus policy.
+- `tick`: pumps platform events, calls `sync`, drains events, and applies focus
+  event policy.
+- `focus_webview`: explicitly lets the webview own keyboard focus.
+- `release_keyboard_focus`: disables webview keyboard focus and returns focus to
+  the parent window where supported.
+- `controller`: exposes the underlying low-level controller for advanced calls.
+
+`WebViewAreaPolicy::default()` uses `HiddenWebViewStrategy::Park`. Hidden or
+overlay-covered webviews move to `DEFAULT_PARK_BOUNDS` while remaining natively
+visible, which is often faster and less visually stale than the native hide path
+on WSLg/WebKitGTK. Apps can choose `Hide` or `HideAndPark` when a platform or
+product policy needs a different behavior.

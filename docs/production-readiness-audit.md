@@ -17,7 +17,8 @@ decisions are made.
 
 The most important hardening work is complete:
 
-- Public API is centered on `WebViewController`; backend types are private.
+- Public API is centered on `WebViewController` plus the Tier 1.5
+  `WebViewAreaController`; backend types are private.
 - Defaults are conservative and no longer load fixture content.
 - Fixture helpers and the regression app are behind the `testing` feature.
 - Navigation policy is caller-configurable.
@@ -27,8 +28,8 @@ The most important hardening work is complete:
   incognito mode are explicit opt-ins.
 - Bounds are documented and validated before attach/update.
 - Rustdoc is enabled with `#![warn(missing_docs)]`.
-- README and standalone docs cover PRD, spec, architecture, API, security,
-  testing, limitations, platform notes, and licensing.
+- README and standalone docs cover PRD, spec, architecture, API, WebViewArea
+  composition, security, testing, limitations, platform notes, and licensing.
 - Canonical check scripts run formatting, clippy, tests, docs, and regression
   binary checks.
 - Release package scripts run the static gates and `cargo package`.
@@ -68,8 +69,10 @@ for event in controller.drain_events() {
 }
 ```
 
-This is the right shape for the current native-child composition tier. A future
-Slint component wrapper can be built on top of it without exposing Wry.
+This is the right low-level shape for the current native-child composition tier.
+The crate now also exposes `WebViewAreaController` and `ui/webview-area.slint`
+for reusable Slint-facing parking, overlay, and focus policy without exposing
+Wry.
 
 Current API caveats:
 
@@ -81,6 +84,8 @@ Current API caveats:
   executed by the crate.
 - Runtime diagnostics are still mostly attach-time errors rather than a rich
   preflight report.
+- The shipped Slint component is a source component import, not yet a Slint
+  experimental crate module.
 
 ## Functional Review
 
@@ -96,6 +101,8 @@ Implemented:
 - Structured events for navigation, IPC, title, script result, popup, and
   download activity.
 - Static capability reporting for the selected backend.
+- `WebViewAreaController` parking, overlay suppression, focus release, and
+  event-policy handling.
 
 Not yet implemented:
 
@@ -117,6 +124,7 @@ Documentation now exists in:
 - `docs/api.md`
 - `docs/security.md`
 - `docs/testing.md`
+- `docs/webview-area.md`
 - `docs/limitations.md`
 - `docs/platforms/windows.md`
 - `docs/platforms/linux-wsl.md`
@@ -135,7 +143,10 @@ view, not a true Slint scene-graph item.
 Current regression coverage proves:
 
 - Pure API behavior with and without the default backend.
+- Pure `WebViewAreaPolicy` placement behavior with and without the default
+  backend.
 - Formatting, clippy, and rustdoc gates.
+- `examples/area.rs` compilation through all-target checks.
 - Regression app compilation behind `testing`.
 - Windows WebView2 smoke attach and DOM probe.
 - Windows composed-window visual sentinel check.

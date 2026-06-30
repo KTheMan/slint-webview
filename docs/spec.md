@@ -5,6 +5,10 @@
 The crate exposes a controller-oriented API:
 
 - `WebViewController`: owns the native backend instance and event receiver.
+- `WebViewAreaController`: wraps `WebViewController` with Slint area
+  synchronization, parking, overlay, and focus policy.
+- `WebViewAreaPolicy`, `WebViewAreaState`, and `WebViewAreaPlacement`:
+  serializable policy/state types for widget-style composition.
 - `WebViewOptions`: creation-time configuration.
 - `WebViewSource`: initial content selection.
 - `WebViewBounds`: Slint logical-pixel rectangle.
@@ -13,6 +17,9 @@ The crate exposes a controller-oriented API:
 
 The backend module remains private. Application code should not depend on Wry
 types directly.
+
+The crate also ships `ui/webview-area.slint`, a declarative placeholder
+component for apps that want the webview represented in their Slint UI tree.
 
 ## Lifecycle
 
@@ -26,6 +33,14 @@ types directly.
 6. Call `pump_platform_events()` from the Slint tick/timer path where required.
 7. Drain controller events regularly with `try_recv_event()` or `drain_events()`.
 8. Drop the controller before or during window teardown.
+
+For `WebViewAreaController`, replace steps 4, 6, and 7 with:
+
+1. Create `WebViewAreaState` from the Slint placeholder bounds and UI state.
+2. Call `WebViewAreaController::attach(&window_handle, options, state, policy)`.
+3. Call `sync(state)` on state changes, or `tick(state)` from a Slint timer to
+   pump platform events, synchronize placement, drain events, and apply focus
+   event policy.
 
 ## Coordinate Model
 
@@ -72,6 +87,10 @@ The first backend is Wry. It uses native child surfaces:
 The native child surface is not part of the Slint scene graph. The application
 must manage overlay policy by hiding or moving the webview when Slint content
 needs to appear above it.
+
+`WebViewAreaPolicy::default()` uses offscreen parking for hidden webviews. Apps
+may opt into native hide or hide-and-park if that fits their platform behavior
+better.
 
 ## Feature Flags
 

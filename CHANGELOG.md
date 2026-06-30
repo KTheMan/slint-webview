@@ -13,6 +13,10 @@ Initial release candidate for native webview composition in Slint apps.
 
 - `WebViewController` public API for attaching, moving, showing, hiding,
   focusing, loading, and scripting a native child webview.
+- `WebViewAreaController` plus `ui/webview-area.slint` for Tier 1.5
+  widget-style composition on top of the native child backend.
+- `WebViewAreaPolicy`, `WebViewAreaState`, `WebViewAreaPlacement`, and
+  `HiddenWebViewStrategy` for reusable parking, overlay, and focus policy.
 - Wry backend using WebView2 on Windows, WebKitGTK on Linux, and WKWebView on
   macOS through Wry's platform support.
 - Conservative `WebViewOptions` defaults with explicit opt-ins for JavaScript,
@@ -23,6 +27,7 @@ Initial release candidate for native webview composition in Slint apps.
 - Deterministic regression fixture and Slint regression app behind the
   `testing` feature.
 - Windows and Linux/WSL verification scripts plus package dry-run scripts.
+- Compileable `examples/area.rs` demonstrating `WebViewAreaController`.
 - Documentation for architecture, API shape, security model, limitations,
   testing, licensing, and platform notes.
 

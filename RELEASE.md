@@ -14,6 +14,8 @@ owner chooses the crates.io publishing policy.
 - Verify macOS with a WKWebView smoke run or document macOS as unverified in
   the release announcement.
 - Confirm LGPL-3.0-only is still the intended license.
+- Decide whether `ui/webview-area.slint` should remain a source import or move
+  to Slint's experimental crate module build flow.
 
 ## Local Release Validation
 

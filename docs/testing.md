@@ -12,8 +12,9 @@ cargo test
 ```
 
 These verify serializable API types, conservative defaults, navigation policy,
-and pure Rust behavior. The no-default-features path proves the public API can
-compile without a native backend.
+`WebViewAreaPolicy` placement behavior, and pure Rust behavior. The
+no-default-features path proves the public API can compile without a native
+backend.
 
 ## Static Gates
 
@@ -47,6 +48,20 @@ colors from both Slint UI and the webview fixture:
 
 The fixture is local and deterministic by design. External sites such as YouTube
 are useful for manual stress testing, but they are not stable regression inputs.
+
+## WebViewArea Example
+
+The widget-style composition example compiles as part of `--all-targets` checks:
+
+```powershell
+cargo check --examples --all-features
+```
+
+Run it manually when validating the reusable area wrapper:
+
+```powershell
+cargo run --example area
+```
 
 ## Package Validation
 

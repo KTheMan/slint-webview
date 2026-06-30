@@ -9,4 +9,4 @@ cargo test --no-default-features
 cargo test
 cargo doc --all-features --no-deps
 cargo package --allow-dirty
-cargo package --list
+cargo package --allow-dirty --list

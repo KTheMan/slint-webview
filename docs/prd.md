@@ -6,9 +6,10 @@ Provide a small native-webview integration for Slint applications that can host
 web content next to normal Slint controls without embedding a full browser
 engine in the application binary.
 
-The first production-shaped milestone is a stable controller API, predictable
-native-child composition behavior, deterministic regression coverage, and clear
-documentation. Publishing is explicitly out of scope for this milestone.
+The first production-shaped milestone is a stable controller API, a reusable
+Slint-facing area wrapper for native-child composition, deterministic regression
+coverage, and clear documentation. Publishing is explicitly out of scope for
+this milestone.
 
 ## Users
 
@@ -23,7 +24,9 @@ documentation. Publishing is explicitly out of scope for this milestone.
 
 - Use native platform webviews through Wry for the first backend.
 - Keep Wry and backend internals out of the public API.
-- Expose `WebViewController` as the primary application-facing type.
+- Expose `WebViewController` as the primary low-level application-facing type.
+- Expose `WebViewAreaController` and `ui/webview-area.slint` for apps that want
+  widget-style Slint composition policy.
 - Support loading blank, URL, and inline HTML sources.
 - Support logical-pixel bounds updates from Slint layout code.
 - Support show/hide, focus, parent-focus restore, JavaScript evaluation, IPC,
@@ -56,13 +59,13 @@ documentation. Publishing is explicitly out of scope for this milestone.
 - Windows visual smoke captures the composed application and validates sentinel
   colors.
 - WSL/Linux smoke proves attach and DOM probe when native dependencies exist.
-- README, API docs, architecture docs, security docs, limitations, and platform
-  notes are present.
+- README, API docs, architecture docs, WebViewArea docs, security docs,
+  limitations, and platform notes are present.
 
 ## Open Product Decisions
 
-- Whether a future release should expose a Slint component wrapper in addition
-  to `WebViewController`.
+- Whether the Slint component wrapper should use Slint's experimental crate
+  module import path before publishing.
 - Whether macOS is a first verified platform before publish.
 - Whether custom protocols should be exposed in the first public API.
 - Whether async/future-based script evaluation should wrap the current event

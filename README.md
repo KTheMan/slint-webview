@@ -15,6 +15,8 @@ workspace are non-authoritative unless a maintainer explicitly points to them.
 ## What This Is
 
 - A Rust library API centered on `WebViewController`.
+- A Tier 1.5 `WebViewArea`/`WebViewAreaController` composition layer for Slint
+  apps that want reusable parking, overlay, and focus policy.
 - A Wry-backed native child-view implementation.
 - Conservative defaults: blank page, JavaScript off, devtools off, clipboard
   off, downloads off, popups off, initial webview focus off.
@@ -75,6 +77,38 @@ fn tick(controller: &WebViewController) {
 for as long as the native child webview should exist.
 
 See [examples/minimal.rs](examples/minimal.rs) for a compileable starter app.
+
+## WebViewArea Composition
+
+For app code that wants a Slint-facing widget surface, import
+`ui/webview-area.slint` and drive it with `WebViewAreaController`.
+
+```rust,no_run
+use slint_webview::{
+    WebViewAreaController, WebViewAreaPolicy, WebViewAreaState, WebViewBounds,
+    WebViewOptions,
+};
+
+fn attach_area<W>(window_handle: &W) -> slint_webview::Result<WebViewAreaController>
+where
+    W: raw_window_handle::HasWindowHandle,
+{
+    let state = WebViewAreaState::new(WebViewBounds::new(276.0, 72.0, 600.0, 504.0));
+    WebViewAreaController::attach(
+        window_handle,
+        WebViewOptions::default().with_bounds(state.bounds),
+        state,
+        WebViewAreaPolicy::default(),
+    )
+}
+```
+
+The default area policy parks hidden or overlay-covered webviews offscreen. This
+keeps Slint modals and shell inputs usable on platforms where native hide/focus
+behavior is slow or inconsistent.
+
+See [examples/area.rs](examples/area.rs) and
+[docs/webview-area.md](docs/webview-area.md).
 
 ## Installation
 
@@ -171,6 +205,7 @@ cargo run --features testing --bin slint-webview-regression -- --smoke
 - [API notes](docs/api.md)
 - [Security model](docs/security.md)
 - [Testing strategy](docs/testing.md)
+- [WebViewArea composition](docs/webview-area.md)
 - [Limitations](docs/limitations.md)
 - [Windows notes](docs/platforms/windows.md)
 - [Linux/WSL notes](docs/platforms/linux-wsl.md)

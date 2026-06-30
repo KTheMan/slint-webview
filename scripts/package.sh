@@ -13,7 +13,7 @@ if command -v pkg-config >/dev/null 2>&1 \
   cargo test
   cargo doc --all-features --no-deps
   cargo package --allow-dirty
-  cargo package --list
+  cargo package --allow-dirty --list
 else
   cat <<'MSG'
 Linux native webview dependencies are missing.
